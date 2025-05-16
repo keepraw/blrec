@@ -54,7 +54,7 @@ class RecordTaskManager:
     async def destroy_all_tasks(self) -> None:
         logger.debug('Destroying all tasks...')
         for task in self._tasks.values():
-            if not task.ready:
+            if not task._ready:
                 continue
             await task.destroy()
         self._tasks.clear()
@@ -128,7 +128,7 @@ class RecordTaskManager:
     async def remove_all_tasks(self) -> None:
         logger.debug('Removing all tasks...')
         for room_id, task in self._tasks.copy().items():
-            if not task.ready:
+            if not task._ready:
                 continue
             await self.remove_task(room_id)
         malloc_trim(0)
@@ -152,7 +152,7 @@ class RecordTaskManager:
     async def start_all_tasks(self) -> None:
         logger.debug('Starting all tasks...')
         for room_id, task in self._tasks.items():
-            if not task.ready:
+            if not task._ready:
                 continue
             await self.start_task(room_id)
         logger.debug('Started all tasks')
@@ -160,7 +160,7 @@ class RecordTaskManager:
     async def stop_all_tasks(self, force: bool = False) -> None:
         logger.debug('Stopping all tasks...')
         for room_id, task in self._tasks.items():
-            if not task.ready:
+            if not task._ready:
                 continue
             await self.stop_task(room_id, force=force)
         logger.debug('Stopped all tasks')
@@ -180,7 +180,7 @@ class RecordTaskManager:
     async def enable_all_task_monitors(self) -> None:
         logger.debug('Enabling live monitor for all tasks...')
         for room_id, task in self._tasks.items():
-            if not task.ready:
+            if not task._ready:
                 continue
             await self.enable_task_monitor(room_id)
         logger.debug('Enabled live monitor for all tasks')
@@ -188,7 +188,7 @@ class RecordTaskManager:
     async def disable_all_task_monitors(self) -> None:
         logger.debug('Disabling live monitor for all tasks...')
         for room_id, task in self._tasks.items():
-            if not task.ready:
+            if not task._ready:
                 continue
             await self.disable_task_monitor(room_id)
         logger.debug('Disabled live monitor for all tasks')
@@ -208,7 +208,7 @@ class RecordTaskManager:
     async def enable_all_task_recorders(self) -> None:
         logger.debug('Enabling recorder for all tasks...')
         for room_id, task in self._tasks.items():
-            if not task.ready:
+            if not task._ready:
                 continue
             await self.enable_task_recorder(room_id)
         logger.debug('Enabled recorder for all tasks')
@@ -216,7 +216,7 @@ class RecordTaskManager:
     async def disable_all_task_recorders(self, force: bool = False) -> None:
         logger.debug('Disabling recorder for all tasks...')
         for room_id, task in self._tasks.items():
-            if not task.ready:
+            if not task._ready:
                 continue
             await self.disable_task_recorder(room_id, force=force)
         logger.debug('Disabled recorder for all tasks')
@@ -226,7 +226,7 @@ class RecordTaskManager:
         return self._make_task_data(task)
 
     def get_all_task_data(self) -> Iterator[TaskData]:
-        for task in filter(lambda t: t.ready, self._tasks.values()):
+        for task in filter(lambda t: t._ready, self._tasks.values()):
             yield self._make_task_data(task)
 
     def get_task_param(self, room_id: int) -> TaskParam:
@@ -262,7 +262,7 @@ class RecordTaskManager:
     async def update_all_task_infos(self) -> None:
         logger.debug('Updating info for all tasks...')
         for room_id, task in self._tasks.items():
-            if not task.ready:
+            if not task._ready:
                 continue
             await self.update_task_info(room_id)
         logger.debug('Updated info for all tasks')
@@ -310,7 +310,7 @@ class RecordTaskManager:
         except KeyError:
             raise NotFoundError(f'no task for the room {room_id}')
         else:
-            if check_ready and not task.ready:
+            if check_ready and not task._ready:
                 raise NotFoundError(f'the task {room_id} is not ready yet')
             return task
 
