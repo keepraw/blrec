@@ -289,63 +289,63 @@ class SettingsManager:
         )
 
     def apply_serverchan_notification_settings(self) -> None:
-        self._apply_serverchan_settings(self._app._serverchan)
+        self._apply_serverchan_settings(self._app._serverchan_service)
         self._apply_notifier_settings(
-            self._app._serverchan, self._settings.serverchan_notification
+            self._app._serverchan_service, self._settings.serverchan_notification
         )
         self._apply_notification_settings(
-            self._app._serverchan, self._settings.serverchan_notification
+            self._app._serverchan_service, self._settings.serverchan_notification
         )
         self._apply_message_template_settings(
-            self._app._serverchan, self._settings.serverchan_notification
+            self._app._serverchan_service, self._settings.serverchan_notification
         )
 
     def apply_pushdeer_notification_settings(self) -> None:
-        self._apply_pushdeer_settings(self._app._pushdeer)
+        self._apply_pushdeer_settings(self._app._pushdeer_service)
         self._apply_notifier_settings(
-            self._app._pushdeer, self._settings.pushdeer_notification
+            self._app._pushdeer_service, self._settings.pushdeer_notification
         )
         self._apply_notification_settings(
-            self._app._pushdeer, self._settings.pushdeer_notification
+            self._app._pushdeer_service, self._settings.pushdeer_notification
         )
         self._apply_message_template_settings(
-            self._app._pushdeer, self._settings.pushdeer_notification
+            self._app._pushdeer_service, self._settings.pushdeer_notification
         )
 
     def apply_pushplus_notification_settings(self) -> None:
-        self._apply_pushplus_settings(self._app._pushplus)
+        self._apply_pushplus_settings(self._app._pushplus_service)
         self._apply_notifier_settings(
-            self._app._pushplus, self._settings.pushplus_notification
+            self._app._pushplus_service, self._settings.pushplus_notification
         )
         self._apply_notification_settings(
-            self._app._pushplus, self._settings.pushplus_notification
+            self._app._pushplus_service, self._settings.pushplus_notification
         )
         self._apply_message_template_settings(
-            self._app._pushplus, self._settings.pushplus_notification
+            self._app._pushplus_service, self._settings.pushplus_notification
         )
 
     def apply_telegram_notification_settings(self) -> None:
-        self._apply_telegram_settings(self._app._telegram)
+        self._apply_telegram_settings(self._app._telegram_service)
         self._apply_notifier_settings(
-            self._app._telegram, self._settings.telegram_notification
+            self._app._telegram_service, self._settings.telegram_notification
         )
         self._apply_notification_settings(
-            self._app._telegram, self._settings.telegram_notification
+            self._app._telegram_service, self._settings.telegram_notification
         )
         self._apply_message_template_settings(
-            self._app._telegram, self._settings.telegram_notification
+            self._app._telegram_service, self._settings.telegram_notification
         )
 
     def apply_bark_notification_settings(self) -> None:
-        self._apply_bark_settings(self._app._bark)
+        self._apply_bark_settings(self._app._bark_service)
         self._apply_notifier_settings(
-            self._app._bark, self._settings.bark_notification
+            self._app._bark_service, self._settings.bark_notification
         )
         self._apply_notification_settings(
-            self._app._bark, self._settings.bark_notification
+            self._app._bark_service, self._settings.bark_notification
         )
         self._apply_message_template_settings(
-            self._app._bark, self._settings.bark_notification
+            self._app._bark_service, self._settings.bark_notification
         )
 
     def apply_webhooks_settings(self) -> None:
