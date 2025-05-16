@@ -75,7 +75,12 @@ class RecordTaskManager:
     async def add_task(self, settings: TaskSettings) -> None:
         logger.info(f'Adding task {settings.room_id}...')
 
-        task = RecordTask(settings.room_id)
+        output_settings = self._settings_manager.get_settings({'output'}).output
+        task = RecordTask(
+            settings.room_id,
+            output_settings.out_dir,
+            output_settings.path_template
+        )
         self._tasks[settings.room_id] = task
 
         try:

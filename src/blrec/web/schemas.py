@@ -46,7 +46,6 @@ AliasKeyOfSettings = Literal[
     'logging',
     'biliApi',
     'header',
-    'danmaku',
     'recorder',
     'postprocessing',
     'space',
