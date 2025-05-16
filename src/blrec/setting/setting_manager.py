@@ -349,7 +349,7 @@ class SettingsManager:
         )
 
     def apply_webhooks_settings(self) -> None:
-        self._app._webhook_manager.apply_settings(self._settings.webhooks)
+        self._app._webhook_emitter.apply_settings(self._settings.webhooks)
 
     def _apply_email_settings(self, email_service: EmailService) -> None:
         email_service.apply_settings(self._settings.email_notification)
