@@ -25,7 +25,6 @@ from .notification import (
 from .setting import Settings, SettingsIn, SettingsManager, SettingsOut, TaskOptions
 from .setting.typing import KeySetOfSettings
 from .task import (
-    DanmakuFileDetail,
     RecordTaskManager,
     TaskData,
     TaskParam,
@@ -253,18 +252,10 @@ class Application:
         return self._task_manager.get_task_stream_profile(room_id)
 
     def get_task_video_file_details(self, room_id: int) -> Iterator[VideoFileDetail]:
-        yield from self._task_manager.get_task_video_file_details(room_id)
-
-    def get_task_danmaku_file_details(
-        self, room_id: int
-    ) -> Iterator[DanmakuFileDetail]:
-        yield from self._task_manager.get_task_danmaku_file_details(room_id)
+        return self._task_manager.get_task_video_file_details(room_id)
 
     def can_cut_stream(self, room_id: int) -> bool:
         return self._task_manager.can_cut_stream(room_id)
-
-    def cut_stream(self, room_id: int) -> bool:
-        return self._task_manager.cut_stream(room_id)
 
     async def update_task_info(self, room_id: int) -> None:
         logger.info(f'Updating info for task {room_id}...')
