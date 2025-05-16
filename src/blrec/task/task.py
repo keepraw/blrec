@@ -20,9 +20,8 @@ from blrec.flv.operators import StreamProfile
 from blrec.postprocess import DeleteStrategy, Postprocessor, PostprocessorStatus
 from blrec.postprocess.remux import RemuxingProgress
 from blrec.setting import HeaderSettings
-from blrec.setting.models import OutputSettings
+from blrec.setting.models import OutputSettings, PostprocessingSettings
 from blrec.setting.typing import (
-    PostprocessingSettings,
     RecordingMode,
     RecorderSettings,
 )
