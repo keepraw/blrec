@@ -382,3 +382,43 @@ class RecordTask:
     def _destroy_postprocessor_event_submitter(self) -> None:
         with suppress(AttributeError):
             del self._postprocessor_event_submitter
+
+    def set_output_settings(self, settings: OutputSettings) -> None:
+        self.out_dir = settings.out_dir
+        self.path_template = settings.path_template
+        self.filesize_limit = settings.filesize_limit
+        self.duration_limit = settings.duration_limit
+
+    def set_recorder_settings(self, settings: RecorderSettings) -> None:
+        self.stream_format = settings.stream_format
+        self.recording_mode = settings.recording_mode
+        self.quality_number = settings.quality_number
+        self.fmp4_stream_timeout = settings.fmp4_stream_timeout
+        self.read_timeout = settings.read_timeout
+        self.disconnection_timeout = settings.disconnection_timeout
+        self.buffer_size = settings.buffer_size
+        self.save_cover = settings.save_cover
+        self.cover_save_strategy = settings.cover_save_strategy
+
+    def set_postprocessing_settings(self, settings: PostprocessingSettings) -> None:
+        self.remux_to_mp4 = settings.remux_to_mp4
+        self.inject_extra_metadata = settings.inject_extra_metadata
+        self.delete_source = settings.delete_source
+
+    async def apply_task_header_settings(
+        self,
+        room_id: int,
+        settings: HeaderSettings,
+        *,
+        restart_danmaku_client: bool = True,
+    ) -> None:
+        task = self._get_task(room_id)
+        changed = False
+        if task.user_agent != settings.user_agent:
+            task.user_agent = settings.user_agent
+            changed = True
+        if task.cookie != settings.cookie:
+            task.cookie = settings.cookie
+            changed = True
+        if changed:
+            await task.restart_danmaku_client()

@@ -22,7 +22,6 @@ from loguru import logger
 
 from ..setting import (
     BiliApiSettings,
-    DanmakuSettings,
     HeaderSettings,
     OutputSettings,
     PostprocessingSettings,
@@ -90,9 +89,6 @@ class RecordTaskManager:
 
             self._settings_manager.apply_task_output_settings(
                 settings.room_id, settings.output
-            )
-            self._settings_manager.apply_task_danmaku_settings(
-                settings.room_id, settings.danmaku
             )
             self._settings_manager.apply_task_recorder_settings(
                 settings.room_id, settings.recorder
@@ -283,61 +279,30 @@ class RecordTaskManager:
         self,
         room_id: int,
         settings: HeaderSettings,
-        *,
-        restart_danmaku_client: bool = True,
     ) -> None:
         task = self._get_task(room_id)
-        changed = False
         if task.user_agent != settings.user_agent:
             task.user_agent = settings.user_agent
-            changed = True
         if task.cookie != settings.cookie:
             task.cookie = settings.cookie
-            changed = True
-        if changed and restart_danmaku_client:
-            await task.restart_danmaku_client()
 
     def apply_task_output_settings(
         self, room_id: int, settings: OutputSettings
     ) -> None:
-        task = self._get_task(room_id)
-        task.out_dir = settings.out_dir
-        task.path_template = settings.path_template
-        task.filesize_limit = settings.filesize_limit
-        task.duration_limit = settings.duration_limit
-
-    def apply_task_danmaku_settings(
-        self, room_id: int, settings: DanmakuSettings
-    ) -> None:
-        task = self._get_task(room_id)
-        task.danmu_uname = settings.danmu_uname
-        task.record_gift_send = settings.record_gift_send
-        task.record_free_gifts = settings.record_free_gifts
-        task.record_guard_buy = settings.record_guard_buy
-        task.record_super_chat = settings.record_super_chat
-        task.save_raw_danmaku = settings.save_raw_danmaku
+        task = self._get_task(room_id, check_ready=True)
+        task.set_output_settings(settings)
 
     def apply_task_recorder_settings(
         self, room_id: int, settings: RecorderSettings
     ) -> None:
-        task = self._get_task(room_id)
-        task.stream_format = settings.stream_format
-        task.recording_mode = settings.recording_mode
-        task.quality_number = settings.quality_number
-        task.fmp4_stream_timeout = settings.fmp4_stream_timeout
-        task.read_timeout = settings.read_timeout
-        task.disconnection_timeout = settings.disconnection_timeout
-        task.buffer_size = settings.buffer_size
-        task.save_cover = settings.save_cover
-        task.cover_save_strategy = settings.cover_save_strategy
+        task = self._get_task(room_id, check_ready=True)
+        task.set_recorder_settings(settings)
 
     def apply_task_postprocessing_settings(
         self, room_id: int, settings: PostprocessingSettings
     ) -> None:
-        task = self._get_task(room_id)
-        task.remux_to_mp4 = settings.remux_to_mp4
-        task.inject_extra_metadata = settings.inject_extra_metadata
-        task.delete_source = settings.delete_source
+        task = self._get_task(room_id, check_ready=True)
+        task.set_postprocessing_settings(settings)
 
     def _get_task(self, room_id: int, check_ready: bool = False) -> RecordTask:
         try:
@@ -360,14 +325,6 @@ class RecordTaskManager:
             base_play_info_api_urls=task.base_play_info_api_urls,
             user_agent=task.user_agent,
             cookie=task.cookie,
-            danmu_uname=task.danmu_uname,
-            record_gift_send=task.record_gift_send,
-            record_free_gifts=task.record_free_gifts,
-            record_guard_buy=task.record_guard_buy,
-            record_super_chat=task.record_super_chat,
-            save_cover=task.save_cover,
-            cover_save_strategy=task.cover_save_strategy,
-            save_raw_danmaku=task.save_raw_danmaku,
             stream_format=task.stream_format,
             recording_mode=task.recording_mode,
             quality_number=task.quality_number,
@@ -375,6 +332,8 @@ class RecordTaskManager:
             read_timeout=task.read_timeout,
             disconnection_timeout=task.disconnection_timeout,
             buffer_size=task.buffer_size,
+            save_cover=task.save_cover,
+            cover_save_strategy=task.cover_save_strategy,
             remux_to_mp4=task.remux_to_mp4,
             inject_extra_metadata=task.inject_extra_metadata,
             delete_source=task.delete_source,
