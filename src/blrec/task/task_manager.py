@@ -88,7 +88,7 @@ class RecordTaskManager:
             assert bili_api is not None
             self.apply_task_bili_api_settings(settings.room_id, bili_api)
             await self._settings_manager.apply_task_header_settings(
-                settings.room_id, settings.header, restart_danmaku_client=False
+                settings.room_id, settings.header
             )
             await task.setup()
 
