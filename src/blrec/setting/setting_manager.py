@@ -248,8 +248,8 @@ class SettingsManager:
     def apply_logging_settings(self) -> None:
         configure_logger(
             self._settings.logging.log_dir,
-            self._settings.logging.console_log_level,
-            self._settings.logging.backup_count,
+            console_log_level=self._settings.logging.console_log_level,
+            backup_count=self._settings.logging.backup_count,
         )
 
     def apply_bili_api_settings(self) -> None:
