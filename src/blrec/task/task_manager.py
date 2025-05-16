@@ -9,6 +9,7 @@ from tenacity import retry, retry_if_exception_type, stop_after_delay, wait_expo
 from blrec.utils.libc import malloc_trim
 
 from ..bili.exceptions import ApiRequestError
+from ..bili.live import Live
 from ..core.typing import MetaData
 from ..exception import NotFoundError, submit_exception
 from ..flv.operators import StreamProfile
