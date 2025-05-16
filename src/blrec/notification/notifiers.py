@@ -183,6 +183,24 @@ ERROR_MESSAGE_TITLE: Final[str] = '出错了~'
 class MessageNotifier(Notifier, ABC):
     provider: MessagingProvider
 
+    def apply_settings(self, settings: 'EmailNotificationSettings') -> None:
+        self.notify_began = settings.notify_began
+        self.notify_ended = settings.notify_ended
+        self.notify_space = settings.notify_space
+        self.notify_error = settings.notify_error
+        self.began_message_type = settings.began_message_type
+        self.began_message_title = settings.began_message_title
+        self.began_message_content = settings.began_message_content
+        self.ended_message_type = settings.ended_message_type
+        self.ended_message_title = settings.ended_message_title
+        self.ended_message_content = settings.ended_message_content
+        self.space_message_type = settings.space_message_type
+        self.space_message_title = settings.space_message_title
+        self.space_message_content = settings.space_message_content
+        self.error_message_type = settings.error_message_type
+        self.error_message_title = settings.error_message_title
+        self.error_message_content = settings.error_message_content
+
     def _notify_live_began(self, event: LiveBeganEvent) -> None:
         title, content = self._make_began_message(event)
         self._send_message(title, content, self.began_message_type)
