@@ -321,17 +321,24 @@ class SpaceSettings(BaseModel):
     check_interval: int = 60  # 1 minutes
     space_threshold: int = 1024**3  # 1 GB
     recycle_records: bool = False
+    rec_ttl: int = 60 * 60 * 24  # 1 day
 
     @validator('check_interval')
     def _validate_interval(cls, value: int) -> int:
-        allowed_values = frozenset((0, 10, 30, *(60 * i for i in (1, 3, 5, 10))))
-        cls._validate_with_collection(value, allowed_values)
+        if value < 0:
+            raise ValueError('check_interval must be greater than or equal to 0')
         return value
 
     @validator('space_threshold')
     def _validate_threshold(cls, value: int) -> int:
-        allowed_values = frozenset(1024**3 * i for i in (1, 3, 5, 10, 20))
-        cls._validate_with_collection(value, allowed_values)
+        if value < 0:
+            raise ValueError('space_threshold must be greater than or equal to 0')
+        return value
+
+    @validator('rec_ttl')
+    def _validate_rec_ttl(cls, value: int) -> int:
+        if value < 0:
+            raise ValueError('rec_ttl must be greater than or equal to 0')
         return value
 
 
