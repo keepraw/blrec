@@ -314,12 +314,13 @@ class Application:
         self._space_reclaimer.enable()
 
     def _setup_notifiers(self) -> None:
-        self._email_notifier = EmailNotifier()
-        self._serverchan_notifier = ServerchanNotifier()
-        self._pushdeer_notifier = PushdeerNotifier()
-        self._pushplus_notifier = PushplusNotifier()
-        self._telegram_notifier = TelegramNotifier()
-        self._bark_notifier = BarkNotifier()
+        self._email_service = EmailNotifier()
+        self._serverchan_service = ServerchanNotifier()
+        self._pushdeer_service = PushdeerNotifier()
+        self._pushplus_service = PushplusNotifier()
+        self._telegram_service = TelegramNotifier()
+        self._bark_service = BarkNotifier()
+
         self._settings_manager.apply_email_notification_settings()
         self._settings_manager.apply_serverchan_notification_settings()
         self._settings_manager.apply_pushdeer_notification_settings()
@@ -352,18 +353,18 @@ class Application:
         del self._space_reclaimer
 
     def _destroy_notifiers(self) -> None:
-        self._email_notifier.disable()
-        self._serverchan_notifier.disable()
-        self._pushdeer_notifier.disable()
-        self._pushplus_notifier.disable()
-        self._telegram_notifier.disable()
-        self._bark_notifier.disable()
-        del self._email_notifier
-        del self._serverchan_notifier
-        del self._pushdeer_notifier
-        del self._pushplus_notifier
-        del self._telegram_notifier
-        del self._bark_notifier
+        self._email_service.disable()
+        self._serverchan_service.disable()
+        self._pushdeer_service.disable()
+        self._pushplus_service.disable()
+        self._telegram_service.disable()
+        self._bark_service.disable()
+        del self._email_service
+        del self._serverchan_service
+        del self._pushdeer_service
+        del self._pushplus_service
+        del self._telegram_service
+        del self._bark_service
 
     def _destroy_webhooks(self) -> None:
         self._webhook_emitter.disable()
