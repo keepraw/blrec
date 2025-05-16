@@ -6,13 +6,9 @@ import attr
 
 from ..event import (
     CoverImageDownloadedEvent,
-    DanmakuFileCompletedEvent,
-    DanmakuFileCreatedEvent,
     LiveBeganEvent,
     LiveEndedEvent,
     PostprocessingCompletedEvent,
-    RawDanmakuFileCompletedEvent,
-    RawDanmakuFileCreatedEvent,
     RecordingCancelledEvent,
     RecordingFinishedEvent,
     RecordingStartedEvent,
@@ -54,14 +50,6 @@ class WebHook:
             types.add(VideoFileCreatedEvent)
         if settings.video_file_completed:
             types.add(VideoFileCompletedEvent)
-        if settings.danmaku_file_created:
-            types.add(DanmakuFileCreatedEvent)
-        if settings.danmaku_file_completed:
-            types.add(DanmakuFileCompletedEvent)
-        if settings.raw_danmaku_file_created:
-            types.add(RawDanmakuFileCreatedEvent)
-        if settings.raw_danmaku_file_completed:
-            types.add(RawDanmakuFileCompletedEvent)
         if settings.cover_image_downloaded:
             types.add(CoverImageDownloadedEvent)
         if settings.video_postprocessing_completed:
