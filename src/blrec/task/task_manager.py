@@ -81,7 +81,8 @@ class RecordTaskManager:
         task = RecordTask(
             live,
             output_settings.out_dir,
-            output_settings.path_template
+            output_settings.path_template,
+            quality_number=settings.recorder.quality_number
         )
         self._tasks[settings.room_id] = task
 
