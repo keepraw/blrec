@@ -19,7 +19,13 @@ from blrec.flv.metadata_injection import InjectingProgress
 from blrec.flv.operators import StreamProfile
 from blrec.postprocess import DeleteStrategy, Postprocessor, PostprocessorStatus
 from blrec.postprocess.remux import RemuxingProgress
-from blrec.setting.typing import RecordingMode
+from blrec.setting.typing import (
+    HeaderSettings,
+    OutputSettings,
+    PostprocessingSettings,
+    RecordingMode,
+    RecorderSettings,
+)
 
 from .models import (
     RunningStatus,
