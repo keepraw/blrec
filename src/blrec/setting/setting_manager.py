@@ -17,7 +17,6 @@ from ..notification import (
 from ..webhook import WebHook
 from .helpers import shadow_settings, update_settings
 from .models import (
-    DanmakuOptions,
     HeaderOptions,
     MessageTemplateSettings,
     NotificationSettings,
@@ -215,21 +214,12 @@ class SettingsManager:
         self,
         room_id: int,
         options: HeaderOptions,
-        *,
-        restart_danmaku_client: bool = True,
     ) -> None:
         final_settings = self._settings.header.copy()
         shadow_settings(options, final_settings)
         await self._app._task_manager.apply_task_header_settings(
-            room_id, final_settings, restart_danmaku_client=restart_danmaku_client
+            room_id, final_settings
         )
-
-    def apply_task_danmaku_settings(
-        self, room_id: int, options: DanmakuOptions
-    ) -> None:
-        final_settings = self._settings.danmaku.copy()
-        shadow_settings(options, final_settings)
-        self._app._task_manager.apply_task_danmaku_settings(room_id, final_settings)
 
     def apply_task_recorder_settings(
         self, room_id: int, options: RecorderOptions
@@ -253,165 +243,143 @@ class SettingsManager:
         )
 
     async def apply_output_settings(self) -> None:
-        for settings in self._settings.tasks:
-            self.apply_task_output_settings(settings.room_id, settings.output)
-
-        out_dir = self._settings.output.out_dir
-        self._app._out_dir = out_dir
-        self._app._space_monitor.path = out_dir
-        self._app._space_reclaimer.path = out_dir
+        await self._app._task_manager.apply_output_settings(self._settings.output)
 
     def apply_logging_settings(self) -> None:
         configure_logger(
-            log_dir=self._settings.logging.log_dir,
-            console_log_level=self._settings.logging.console_log_level,
-            backup_count=self._settings.logging.backup_count,
+            self._settings.logging.log_dir,
+            self._settings.logging.console_log_level,
+            self._settings.logging.backup_count,
         )
 
     def apply_bili_api_settings(self) -> None:
-        for task_settings in self._settings.tasks:
-            self._app._task_manager.apply_task_bili_api_settings(
-                task_settings.room_id, self._settings.bili_api
-            )
+        self._app._task_manager.apply_bili_api_settings(self._settings.bili_api)
 
     async def apply_header_settings(self) -> None:
-        for settings in self._settings.tasks:
-            await self.apply_task_header_settings(settings.room_id, settings.header)
-
-    def apply_danmaku_settings(self) -> None:
-        for settings in self._settings.tasks:
-            self.apply_task_danmaku_settings(settings.room_id, settings.danmaku)
+        await self._app._task_manager.apply_header_settings(self._settings.header)
 
     def apply_recorder_settings(self) -> None:
-        for settings in self._settings.tasks:
-            self.apply_task_recorder_settings(settings.room_id, settings.recorder)
+        self._app._task_manager.apply_recorder_settings(self._settings.recorder)
 
     def apply_postprocessing_settings(self) -> None:
-        for settings in self._settings.tasks:
-            self.apply_task_postprocessing_settings(
-                settings.room_id, settings.postprocessing
-            )
+        self._app._task_manager.apply_postprocessing_settings(
+            self._settings.postprocessing
+        )
 
     def apply_space_settings(self) -> None:
         self.apply_space_monitor_settings()
         self.apply_space_reclaimer_settings()
 
     def apply_space_monitor_settings(self) -> None:
-        settings = self._settings.space
-        self._app._space_monitor.check_interval = settings.check_interval
-        self._app._space_monitor.space_threshold = settings.space_threshold
+        self._app._space_monitor.apply_settings(self._settings.space)
 
     def apply_space_reclaimer_settings(self) -> None:
-        settings = self._settings.space
-        self._app._space_reclaimer.recycle_records = settings.recycle_records
+        self._app._space_reclaimer.apply_settings(self._settings.space)
 
     def apply_email_notification_settings(self) -> None:
-        notifier = self._app._email_notifier
-        settings = self._settings.email_notification
-        self._apply_email_settings(notifier.provider)
-        self._apply_notifier_settings(notifier, settings)
-        self._apply_notification_settings(notifier, settings)
-        self._apply_message_template_settings(notifier, settings)
+        self._apply_email_settings(self._app._email_service)
+        self._apply_notifier_settings(
+            self._app._email_service, self._settings.email_notification
+        )
+        self._apply_notification_settings(
+            self._app._email_service, self._settings.email_notification
+        )
+        self._apply_message_template_settings(
+            self._app._email_service, self._settings.email_notification
+        )
 
     def apply_serverchan_notification_settings(self) -> None:
-        notifier = self._app._serverchan_notifier
-        settings = self._settings.serverchan_notification
-        self._apply_serverchan_settings(notifier.provider)
-        self._apply_notifier_settings(notifier, settings)
-        self._apply_notification_settings(notifier, settings)
-        self._apply_message_template_settings(notifier, settings)
+        self._apply_serverchan_settings(self._app._serverchan)
+        self._apply_notifier_settings(
+            self._app._serverchan, self._settings.serverchan_notification
+        )
+        self._apply_notification_settings(
+            self._app._serverchan, self._settings.serverchan_notification
+        )
+        self._apply_message_template_settings(
+            self._app._serverchan, self._settings.serverchan_notification
+        )
 
     def apply_pushdeer_notification_settings(self) -> None:
-        notifier = self._app._pushdeer_notifier
-        settings = self._settings.pushdeer_notification
-        self._apply_pushdeer_settings(notifier.provider)
-        self._apply_notifier_settings(notifier, settings)
-        self._apply_notification_settings(notifier, settings)
-        self._apply_message_template_settings(notifier, settings)
+        self._apply_pushdeer_settings(self._app._pushdeer)
+        self._apply_notifier_settings(
+            self._app._pushdeer, self._settings.pushdeer_notification
+        )
+        self._apply_notification_settings(
+            self._app._pushdeer, self._settings.pushdeer_notification
+        )
+        self._apply_message_template_settings(
+            self._app._pushdeer, self._settings.pushdeer_notification
+        )
 
     def apply_pushplus_notification_settings(self) -> None:
-        notifier = self._app._pushplus_notifier
-        settings = self._settings.pushplus_notification
-        self._apply_pushplus_settings(notifier.provider)
-        self._apply_notifier_settings(notifier, settings)
-        self._apply_notification_settings(notifier, settings)
-        self._apply_message_template_settings(notifier, settings)
+        self._apply_pushplus_settings(self._app._pushplus)
+        self._apply_notifier_settings(
+            self._app._pushplus, self._settings.pushplus_notification
+        )
+        self._apply_notification_settings(
+            self._app._pushplus, self._settings.pushplus_notification
+        )
+        self._apply_message_template_settings(
+            self._app._pushplus, self._settings.pushplus_notification
+        )
 
     def apply_telegram_notification_settings(self) -> None:
-        notifier = self._app._telegram_notifier
-        settings = self._settings.telegram_notification
-        self._apply_telegram_settings(notifier.provider)
-        self._apply_notifier_settings(notifier, settings)
-        self._apply_notification_settings(notifier, settings)
-        self._apply_message_template_settings(notifier, settings)
+        self._apply_telegram_settings(self._app._telegram)
+        self._apply_notifier_settings(
+            self._app._telegram, self._settings.telegram_notification
+        )
+        self._apply_notification_settings(
+            self._app._telegram, self._settings.telegram_notification
+        )
+        self._apply_message_template_settings(
+            self._app._telegram, self._settings.telegram_notification
+        )
 
     def apply_bark_notification_settings(self) -> None:
-        notifier = self._app._bark_notifier
-        settings = self._settings.bark_notification
-        self._apply_bark_settings(notifier.provider)
-        self._apply_notifier_settings(notifier, settings)
-        self._apply_notification_settings(notifier, settings)
-        self._apply_message_template_settings(notifier, settings)
+        self._apply_bark_settings(self._app._bark)
+        self._apply_notifier_settings(
+            self._app._bark, self._settings.bark_notification
+        )
+        self._apply_notification_settings(
+            self._app._bark, self._settings.bark_notification
+        )
+        self._apply_message_template_settings(
+            self._app._bark, self._settings.bark_notification
+        )
 
     def apply_webhooks_settings(self) -> None:
-        webhooks = [WebHook.from_settings(s) for s in self._settings.webhooks]
-        self._app._webhook_emitter.webhooks = webhooks
+        self._app._webhook_manager.apply_settings(self._settings.webhooks)
 
     def _apply_email_settings(self, email_service: EmailService) -> None:
-        email_service.src_addr = self._settings.email_notification.src_addr
-        email_service.dst_addr = self._settings.email_notification.dst_addr
-        email_service.auth_code = self._settings.email_notification.auth_code
-        email_service.smtp_host = self._settings.email_notification.smtp_host
-        email_service.smtp_port = self._settings.email_notification.smtp_port
+        email_service.apply_settings(self._settings.email_notification)
 
     def _apply_serverchan_settings(self, serverchan: Serverchan) -> None:
-        serverchan.sendkey = self._settings.serverchan_notification.sendkey
+        serverchan.apply_settings(self._settings.serverchan_notification)
 
     def _apply_pushdeer_settings(self, pushdeer: Pushdeer) -> None:
-        pushdeer.server = self._settings.pushdeer_notification.server
-        pushdeer.pushkey = self._settings.pushdeer_notification.pushkey
+        pushdeer.apply_settings(self._settings.pushdeer_notification)
 
     def _apply_pushplus_settings(self, pushplus: Pushplus) -> None:
-        pushplus.token = self._settings.pushplus_notification.token
-        pushplus.topic = self._settings.pushplus_notification.topic
+        pushplus.apply_settings(self._settings.pushplus_notification)
 
     def _apply_telegram_settings(self, telegram: Telegram) -> None:
-        telegram.token = self._settings.telegram_notification.token
-        telegram.chatid = self._settings.telegram_notification.chatid
-        telegram.server = self._settings.telegram_notification.server
+        telegram.apply_settings(self._settings.telegram_notification)
 
     def _apply_bark_settings(self, bark: Bark) -> None:
-        bark.server = self._settings.bark_notification.server
-        bark.pushkey = self._settings.bark_notification.pushkey
+        bark.apply_settings(self._settings.bark_notification)
 
     def _apply_notifier_settings(
         self, notifier: Notifier, settings: NotifierSettings
     ) -> None:
-        if settings.enabled:
-            notifier.enable()
-        else:
-            notifier.disable()
+        notifier.apply_settings(settings)
 
     def _apply_notification_settings(
         self, notifier: Notifier, settings: NotificationSettings
     ) -> None:
-        notifier.notify_began = settings.notify_began
-        notifier.notify_ended = settings.notify_ended
-        notifier.notify_error = settings.notify_error
-        notifier.notify_space = settings.notify_space
+        notifier.apply_settings(settings)
 
     def _apply_message_template_settings(
         self, notifier: Notifier, settings: MessageTemplateSettings
     ) -> None:
-        notifier.began_message_type = settings.began_message_type
-        notifier.began_message_title = settings.began_message_title
-        notifier.began_message_content = settings.began_message_content
-        notifier.ended_message_type = settings.ended_message_type
-        notifier.ended_message_title = settings.ended_message_title
-        notifier.ended_message_content = settings.ended_message_content
-        notifier.space_message_type = settings.space_message_type
-        notifier.space_message_title = settings.space_message_title
-        notifier.space_message_content = settings.space_message_content
-        notifier.error_message_type = settings.error_message_type
-        notifier.error_message_title = settings.error_message_title
-        notifier.error_message_content = settings.error_message_content
+        notifier.apply_settings(settings)
