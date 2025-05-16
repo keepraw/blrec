@@ -34,14 +34,6 @@
         {{ status.rec_total | filesize: { spacer: "" } }}
       </span>
       <span
-        class="danmu-count"
-        nz-tooltip
-        nzTooltipTitle="弹幕总计：{{ status.danmu_total | number: '1.0-0' }}"
-        nzTooltipPlacement="top"
-      >
-        {{ status.danmu_total | number: "1.0-0" }}
-      </span>
-      <span
         class="quality"
         nz-tooltip
         nzTooltipTitle="录制画质"

@@ -4,100 +4,122 @@ import {
   StreamFormat,
   QualityNumber,
   RecordingMode,
+  CoverSaveStrategy,
 } from '../../settings/shared/setting.model';
 
-export interface TaskData {
-  user_info: Readonly<UserInfo>;
-  room_info: Readonly<RoomInfo>;
-  task_status: Readonly<TaskStatus>;
-}
-
-export enum DataSelection {
-  ALL = 'all',
-
-  // live status
-  PREPARING = 'preparing',
-  LIVING = 'living',
-  ROUNDING = 'rounding',
-
-  // task status
-  MONITOR_ENABLED = 'monitor_enabled',
-  MONITOR_DISABLED = 'monitor_disabled',
-  RECORDER_ENABLED = 'recorder_enabled',
-  RECORDER_DISABLED = 'recorder_disabled',
-
-  // task running status
-  STOPPED = 'stopped',
-  WAITTING = 'waitting',
-  RECORDING = 'recording',
-  REMUXING = 'remuxing',
-  INJECTING = 'injecting',
-}
-
-export interface UserInfo {
-  readonly name: string;
-  readonly gender: string;
-  readonly face: string;
-  readonly uid: number;
-  readonly level: number;
-  readonly sign: string;
-}
-
-export interface RoomInfo {
-  readonly uid: number;
+export interface Task {
   readonly room_id: number;
-  readonly short_room_id: number;
-  readonly area_id: number;
-  readonly area_name: string;
-  readonly parent_area_id: number;
-  readonly parent_area_name: string;
-  readonly live_status: number;
-  readonly live_start_time: number;
-  readonly online: number;
+  readonly user_name: string;
   readonly title: string;
-  readonly cover: string;
-  readonly tags: string;
-  readonly description: string;
-}
-
-export enum RunningStatus {
-  STOPPED = 'stopped',
-  WAITING = 'waiting',
-  RECORDING = 'recording',
-  REMUXING = 'remuxing',
-  INJECTING = 'injecting',
-}
-
-export enum PostprocessorStatus {
-  WAITING = 'waiting',
-  REMUXING = 'remuxing',
-  INJECTING = 'injecting',
-}
-
-export interface Progress {
-  count: number;
-  total: number;
-}
-
-export interface TaskStatus {
-  readonly monitor_enabled: boolean;
-  readonly recorder_enabled: boolean;
-  readonly running_status: RunningStatus;
+  readonly area_name: string;
+  readonly parent_area_name: string;
+  readonly live_status: LiveStatus;
+  readonly record_status: RecordStatus;
+  readonly auto_record: boolean;
   readonly stream_url: string;
   readonly stream_host: string;
+  readonly stream_format: StreamFormat;
+  readonly real_stream_format: StreamFormat | null;
+  readonly quality_number: QualityNumber;
+  readonly real_quality_number: QualityNumber | null;
+  readonly out_dir: string;
+  readonly path_template: string;
+  readonly filesize_limit: number;
+  readonly duration_limit: number;
+  readonly save_cover: boolean;
+  readonly cover_save_strategy: CoverSaveStrategy;
   readonly dl_total: number;
   readonly dl_rate: number;
   readonly rec_elapsed: number;
   readonly rec_total: number;
   readonly rec_rate: number;
-  readonly danmu_total: number;
-  readonly danmu_rate: number;
+}
+
+export interface TaskSettings {
+  readonly auto_record: boolean;
+  readonly out_dir: string;
+  readonly path_template: string;
+  readonly stream_format: StreamFormat;
+  readonly quality_number: QualityNumber;
+  readonly filesize_limit: number;
+  readonly duration_limit: number;
+  readonly save_cover: boolean;
+  readonly cover_save_strategy: CoverSaveStrategy;
+}
+
+export interface TaskOptions {
+  readonly auto_record: boolean | null;
+  readonly out_dir: string | null;
+  readonly path_template: string | null;
+  readonly stream_format: StreamFormat | null;
+  readonly quality_number: QualityNumber | null;
+  readonly filesize_limit: number | null;
+  readonly duration_limit: number | null;
+  readonly save_cover: boolean | null;
+  readonly cover_save_strategy: CoverSaveStrategy | null;
+}
+
+export interface TaskStatus {
+  readonly room_id: number;
+  readonly user_name: string;
+  readonly title: string;
+  readonly area_name: string;
+  readonly parent_area_name: string;
+  readonly live_status: LiveStatus;
+  readonly record_status: RecordStatus;
+  readonly stream_url: string;
+  readonly stream_host: string;
+  readonly stream_format: StreamFormat;
   readonly real_stream_format: StreamFormat | null;
+  readonly quality_number: QualityNumber;
   readonly real_quality_number: QualityNumber | null;
-  readonly recording_path: string | null;
-  readonly postprocessor_status: PostprocessorStatus;
-  readonly postprocessing_path: string | null;
-  readonly postprocessing_progress: Progress | null;
+  readonly out_dir: string;
+  readonly path_template: string;
+  readonly filesize_limit: number;
+  readonly duration_limit: number;
+  readonly save_cover: boolean;
+  readonly cover_save_strategy: CoverSaveStrategy;
+  readonly dl_total: number;
+  readonly dl_rate: number;
+  readonly rec_elapsed: number;
+  readonly rec_total: number;
+  readonly rec_rate: number;
+}
+
+export interface TaskData {
+  readonly task: Task;
+  readonly status: TaskStatus;
+}
+
+export enum LiveStatus {
+  PREPARING = 'PREPARING',
+  LIVE = 'LIVE',
+  ROUND = 'ROUND',
+}
+
+export enum RecordStatus {
+  WAITING = 'WAITING',
+  RECORDING = 'RECORDING',
+  STOPPED = 'STOPPED',
+}
+
+export interface VideoFileDetail {
+  readonly path: string;
+  readonly size: number;
+  readonly created_at: number;
+  readonly status: VideoFileStatus;
+}
+
+export enum VideoFileStatus {
+  RECORDING = 'RECORDING',
+  COMPLETED = 'COMPLETED',
+}
+
+export interface FileDetail {
+  readonly path: string;
+  readonly size: number;
+  readonly created_at: number;
+  readonly status: VideoFileStatus;
 }
 
 export interface TaskParam {
@@ -108,13 +130,6 @@ export interface TaskParam {
 
   readonly user_agent: string;
   readonly cookie: string;
-
-  readonly danmu_uname: boolean;
-  readonly record_gift_send: boolean;
-  readonly record_free_gifts: boolean;
-  readonly record_guard_buy: boolean;
-  readonly record_super_chat: boolean;
-  readonly save_raw_danmaku: boolean;
 
   readonly stream_format: StreamFormat;
   readonly recording_mode: RecordingMode;
@@ -288,34 +303,6 @@ export interface StreamProfile {
       compatible_brands?: string;
     };
   };
-}
-
-export enum VideoFileStatus {
-  RECORDING = 'recording',
-  REMUXING = 'remuxing',
-  INJECTING = 'injecting',
-  COMPLETED = 'completed',
-  MISSING = 'missing',
-  UNKNOWN = 'unknown',
-}
-
-export enum DanmakuFileStatus {
-  RECORDING = 'recording',
-  COMPLETED = 'completed',
-  MISSING = 'missing',
-  UNKNOWN = 'unknown',
-}
-
-export interface VideoFileDetail {
-  readonly path: string;
-  readonly size: number;
-  readonly status: VideoFileStatus;
-}
-
-export interface DanmakuFileDetail {
-  readonly path: string;
-  readonly size: number;
-  readonly status: DanmakuFileStatus;
 }
 
 export interface AddTaskResult extends ResponseMessage {

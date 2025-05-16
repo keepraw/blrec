@@ -29,5 +29,3 @@ StreamCodec = Literal[
 
 JsonResponse = Dict[str, Any]
 ResponseData = Dict[str, Any]
-
-Danmaku = Mapping[str, Any]

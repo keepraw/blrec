@@ -9,11 +9,9 @@ from blrec.logging.context import async_task_with_logger_context
 
 from ..event.event_emitter import EventEmitter, EventListener
 from ..utils.mixins import SwitchableMixin
-from .danmaku_client import DanmakuClient, DanmakuCommand, DanmakuListener
 from .helpers import extract_formats
 from .live import Live
 from .models import LiveStatus, RoomInfo
-from .typing import Danmaku
 
 __all__ = 'LiveMonitor', 'LiveEventListener'
 
@@ -40,13 +38,15 @@ class LiveEventListener(EventListener):
         ...
 
 
-class LiveMonitor(EventEmitter[LiveEventListener], DanmakuListener, SwitchableMixin):
-    def __init__(self, danmaku_client: DanmakuClient, live: Live) -> None:
+class LiveMonitor(EventEmitter[LiveEventListener], SwitchableMixin):
+    def __init__(self, live: Live) -> None:
         super().__init__()
-        self._logger_context = {'room_id': live.room_id}
-        self._logger = logger.bind(**self._logger_context)
-        self._danmaku_client = danmaku_client
         self._live = live
+        self._logger = logger.bind(room_id=live.room_id)
+        self._previous_status = LiveStatus.UNKNOWN
+        self._status_count = 0
+        self._stream_available = False
+        self._checking_task = None
 
     def _init_status(self) -> None:
         self._previous_status = self._live.room_info.live_status
@@ -59,12 +59,10 @@ class LiveMonitor(EventEmitter[LiveEventListener], DanmakuListener, SwitchableMi
 
     def _do_enable(self) -> None:
         self._init_status()
-        self._danmaku_client.add_listener(self)
         self._start_polling()
         self._logger.debug('Enabled live monitor')
 
     def _do_disable(self) -> None:
-        self._danmaku_client.remove_listener(self)
         asyncio.create_task(self._stop_polling())
         asyncio.create_task(self._stop_checking())
         self._logger.debug('Disabled live monitor')
@@ -93,46 +91,6 @@ class LiveMonitor(EventEmitter[LiveEventListener], DanmakuListener, SwitchableMi
         with suppress(asyncio.CancelledError):
             await self._checking_task
         del self._checking_task
-
-    async def on_client_reconnected(self) -> None:
-        # check the live status after the client reconnected and simulate
-        # events if necessary.
-        # make sure the recorder works well continuously after interruptions
-        # such as an operating system hibernation.
-        self._logger.warning('The Danmaku Client Reconnected')
-
-        await self._live.update_room_info()
-        current_status = self._live.room_info.live_status
-
-        if current_status == self._previous_status:
-            if current_status == LiveStatus.LIVE:
-                self._logger.debug('Simulating stream reset event')
-                await self._handle_status_change(current_status)
-        else:
-            if current_status == LiveStatus.LIVE:
-                self._logger.debug('Simulating live began event')
-                await self._handle_status_change(current_status)
-                self._logger.debug('Simulating live stream available event')
-                await self._handle_status_change(current_status)
-            else:
-                self._logger.debug('Simulating live ended event')
-                await self._handle_status_change(current_status)
-
-    async def on_danmaku_received(self, danmu: Danmaku) -> None:
-        danmu_cmd = danmu['cmd']
-
-        if danmu_cmd == DanmakuCommand.LIVE.value:
-            await self._live.update_room_info()
-            await self._handle_status_change(LiveStatus.LIVE)
-        elif danmu_cmd == DanmakuCommand.PREPARING.value:
-            await self._live.update_room_info()
-            if danmu.get('round', None) == 1:
-                await self._handle_status_change(LiveStatus.ROUND)
-            else:
-                await self._handle_status_change(LiveStatus.PREPARING)
-        elif danmu_cmd == DanmakuCommand.ROOM_CHANGE.value:
-            await self._live.update_room_info()
-            await self._emit('room_changed', self._live.room_info)
 
     async def _handle_status_change(self, current_status: LiveStatus) -> None:
         self._logger.debug(

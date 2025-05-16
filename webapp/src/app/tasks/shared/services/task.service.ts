@@ -15,13 +15,19 @@ import {
   AddTaskResult,
   VideoFileDetail,
   DanmakuFileDetail,
+  TaskSettings,
+  TaskOptions,
 } from '../task.model';
+import { ApiUrlService } from '../../../shared/services/api-url.service';
 
 @Injectable({
   providedIn: 'root',
 })
 export class TaskService {
-  constructor(private http: HttpClient, private url: UrlService) {}
+  constructor(
+    private http: HttpClient,
+    private url: ApiUrlService
+  ) {}
 
   getAllTaskData(
     select: DataSelection = DataSelection.ALL
@@ -31,7 +37,7 @@ export class TaskService {
   }
 
   getTaskData(roomId: number): Observable<TaskData> {
-    const url = this.url.makeApiUrl(`/api/v1/tasks/${roomId}/data`);
+    const url = this.url.makeApiUrl(`/api/v1/tasks/${roomId}`);
     return this.http.get<TaskData>(url);
   }
 
@@ -40,9 +46,9 @@ export class TaskService {
     return this.http.get<VideoFileDetail[]>(url);
   }
 
-  getDanmakuFileDetails(roomId: number): Observable<DanmakuFileDetail[]> {
-    const url = this.url.makeApiUrl(`/api/v1/tasks/${roomId}/danmakus`);
-    return this.http.get<DanmakuFileDetail[]>(url);
+  getTaskSettings(roomId: number): Observable<TaskSettings> {
+    const url = this.url.makeApiUrl(`/api/v1/tasks/${roomId}/settings`);
+    return this.http.get<TaskSettings>(url);
   }
 
   getTaskParam(roomId: number): Observable<TaskParam> {
@@ -70,14 +76,22 @@ export class TaskService {
     return this.http.post<ResponseMessage>(url, null);
   }
 
-  addTask(roomId: number): Observable<AddTaskResult> {
-    const url = this.url.makeApiUrl(`/api/v1/tasks/${roomId}`);
-    return this.http.post<AddTaskResult>(url, null);
+  updateTaskSettings(
+    roomId: number,
+    options: TaskOptions
+  ): Observable<TaskSettings> {
+    const url = this.url.makeApiUrl(`/api/v1/tasks/${roomId}/settings`);
+    return this.http.patch<TaskSettings>(url, options);
   }
 
-  removeTask(roomId: number): Observable<ResponseMessage> {
+  addTask(roomId: number): Observable<AddTaskResult> {
+    const url = this.url.makeApiUrl('/api/v1/tasks');
+    return this.http.post<AddTaskResult>(url, { room_id: roomId });
+  }
+
+  removeTask(roomId: number): Observable<void> {
     const url = this.url.makeApiUrl(`/api/v1/tasks/${roomId}`);
-    return this.http.delete<ResponseMessage>(url);
+    return this.http.delete<void>(url);
   }
 
   removeAllTasks(): Observable<ResponseMessage> {
@@ -112,65 +126,28 @@ export class TaskService {
     return this.http.post<ResponseMessage>(url, { force, background });
   }
 
-  enableTaskMonitor(roomId: number): Observable<ResponseMessage> {
-    const url = this.url.makeApiUrl(`/api/v1/tasks/${roomId}/monitor/enable`);
-    return this.http.post<ResponseMessage>(url, null);
+  enableMonitor(roomId: number): Observable<void> {
+    const url = this.url.makeApiUrl(`/api/v1/tasks/${roomId}/monitor`);
+    return this.http.post<void>(url, {});
   }
 
-  enableAllMonitors(): Observable<ResponseMessage> {
-    const url = this.url.makeApiUrl(`/api/v1/tasks/monitor/enable`);
-    return this.http.post<ResponseMessage>(url, null);
+  disableMonitor(roomId: number): Observable<void> {
+    const url = this.url.makeApiUrl(`/api/v1/tasks/${roomId}/monitor`);
+    return this.http.delete<void>(url);
   }
 
-  disableTaskMonitor(
-    roomId: number,
-    background: boolean = false
-  ): Observable<ResponseMessage> {
-    const url = this.url.makeApiUrl(`/api/v1/tasks/${roomId}/monitor/disable`);
-    return this.http.post<ResponseMessage>(url, { background });
+  enableRecorder(roomId: number): Observable<void> {
+    const url = this.url.makeApiUrl(`/api/v1/tasks/${roomId}/recorder`);
+    return this.http.post<void>(url, {});
   }
 
-  disableAllMonitors(background: boolean = false): Observable<ResponseMessage> {
-    const url = this.url.makeApiUrl(`/api/v1/tasks/monitor/disable`);
-    return this.http.post<ResponseMessage>(url, { background });
+  disableRecorder(roomId: number): Observable<void> {
+    const url = this.url.makeApiUrl(`/api/v1/tasks/${roomId}/recorder`);
+    return this.http.delete<void>(url);
   }
 
-  enableTaskRecorder(roomId: number): Observable<ResponseMessage> {
-    const url = this.url.makeApiUrl(`/api/v1/tasks/${roomId}/recorder/enable`);
-    return this.http.post<ResponseMessage>(url, null);
-  }
-
-  enableAllRecorders(): Observable<ResponseMessage> {
-    const url = this.url.makeApiUrl(`/api/v1/tasks/recorder/enable`);
-    return this.http.post<ResponseMessage>(url, null);
-  }
-
-  disableTaskRecorder(
-    roomId: number,
-    force: boolean = false,
-    background: boolean = false
-  ): Observable<ResponseMessage> {
-    const url = this.url.makeApiUrl(`/api/v1/tasks/${roomId}/recorder/disable`);
-    return this.http.post<ResponseMessage>(url, { force, background });
-  }
-
-  disableAllRecorders(
-    force: boolean = false,
-    background: boolean = false
-  ): Observable<ResponseMessage> {
-    const url = this.url.makeApiUrl(`/api/v1/tasks/recorder/disable`);
-    return this.http.post<ResponseMessage>(url, { force, background });
-  }
-
-  canCutStream(roomId: number) {
-    const url = this.url.makeApiUrl(`/api/v1/tasks/${roomId}/cut`);
-    return this.http
-      .get<{ data: { result: boolean } }>(url)
-      .pipe(map((response) => response.data.result));
-  }
-
-  cutStream(roomId: number) {
-    const url = this.url.makeApiUrl(`/api/v1/tasks/${roomId}/cut`);
-    return this.http.post<null>(url, null);
+  cutStream(roomId: number): Observable<void> {
+    const url = this.url.makeApiUrl(`/api/v1/tasks/${roomId}/stream/cut`);
+    return this.http.post<void>(url, {});
   }
 }
