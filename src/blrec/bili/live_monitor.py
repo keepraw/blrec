@@ -43,6 +43,7 @@ class LiveMonitor(EventEmitter[LiveEventListener], SwitchableMixin):
         super().__init__()
         self._live = live
         self._logger = logger.bind(room_id=live.room_id)
+        self._logger_context = {'room_id': live.room_id}
         self._previous_status = LiveStatus.UNKNOWN
         self._status_count = 0
         self._stream_available = False
