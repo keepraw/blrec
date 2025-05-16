@@ -36,6 +36,10 @@ class SpaceMonitor(
         self.space_threshold = space_threshold
         self._monitoring: bool = False
 
+    def apply_settings(self, settings: 'SpaceSettings') -> None:
+        self.check_interval = settings.check_interval
+        self.space_threshold = settings.space_threshold
+
     @property
     def check_interval(self) -> int:
         return self._check_interval
