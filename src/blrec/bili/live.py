@@ -227,6 +227,10 @@ class Live:
         except Exception:
             # more cpu consumption
             room_info_data = await self._get_room_info_via_html_page()
+        
+        if room_info_data is None:
+            raise ValueError(f"Failed to get room info for room {self._room_id}")
+            
         return RoomInfo.from_data(room_info_data)
 
     @retry(
