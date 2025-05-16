@@ -342,5 +342,5 @@ class RecordTaskManager:
 
     def _make_task_data(self, task: RecordTask) -> TaskData:
         return TaskData(
-            user_info=task.user_info, room_info=task.room_info, task_status=task.status
+            room_info=task.room_info, task_status=task.status
         )
