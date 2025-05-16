@@ -409,16 +409,9 @@ class RecordTask:
         self,
         room_id: int,
         settings: HeaderSettings,
-        *,
-        restart_danmaku_client: bool = True,
     ) -> None:
         task = self._get_task(room_id)
-        changed = False
         if task.user_agent != settings.user_agent:
             task.user_agent = settings.user_agent
-            changed = True
         if task.cookie != settings.cookie:
             task.cookie = settings.cookie
-            changed = True
-        if changed:
-            await task.restart_danmaku_client()

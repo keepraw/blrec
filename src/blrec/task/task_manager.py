@@ -12,7 +12,7 @@ from ..bili.exceptions import ApiRequestError
 from ..core.typing import MetaData
 from ..exception import NotFoundError, submit_exception
 from ..flv.operators import StreamProfile
-from .models import DanmakuFileDetail, TaskData, TaskParam, VideoFileDetail
+from .models import TaskData, TaskParam, VideoFileDetail
 from .task import RecordTask
 
 if TYPE_CHECKING:
@@ -238,12 +238,6 @@ class RecordTaskManager:
     def get_task_video_file_details(self, room_id: int) -> Iterator[VideoFileDetail]:
         task = self._get_task(room_id, check_ready=True)
         yield from task.video_file_details
-
-    def get_task_danmaku_file_details(
-        self, room_id: int
-    ) -> Iterator[DanmakuFileDetail]:
-        task = self._get_task(room_id, check_ready=True)
-        yield from task.danmaku_file_details
 
     def can_cut_stream(self, room_id: int) -> bool:
         task = self._get_task(room_id, check_ready=True)
