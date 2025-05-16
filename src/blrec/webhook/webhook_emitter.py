@@ -21,6 +21,9 @@ class WebHookEmitter(SwitchableMixin):
         self.webhooks = webhooks
         self.headers = {'User-Agent': f'{__prog__}/{__version__}'}
 
+    def apply_settings(self, webhooks: List[WebHook]) -> None:
+        self.webhooks = webhooks
+
     def _do_enable(self) -> None:
         events = EventCenter.get_instance().events
         self._event_subscription = events.subscribe(self._on_event)
