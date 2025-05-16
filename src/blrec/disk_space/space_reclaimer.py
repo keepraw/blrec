@@ -52,6 +52,10 @@ class SpaceReclaimer(SpaceEventListener, SwitchableMixin):
         self.rec_ttl = rec_ttl
         self.recycle_records = recycle_records
 
+    def apply_settings(self, settings: 'SpaceSettings') -> None:
+        self.rec_ttl = settings.rec_ttl
+        self.recycle_records = settings.recycle_records
+
     async def on_space_no_enough(
         self, path: str, threshold: int, disk_usage: DiskUsage
     ) -> None:
