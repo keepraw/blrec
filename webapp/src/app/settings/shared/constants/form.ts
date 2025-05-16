@@ -31,9 +31,9 @@ export const PATH_TEMPLATE_VARIABLES: Readonly<PathTemplateVariable[]> = [
 ] as const;
 
 export const DELETE_STRATEGIES = [
-  { label: '自动', value: DeleteStrategy.AUTO },
-  { label: '谨慎', value: DeleteStrategy.SAFE },
-  { label: '从不', value: DeleteStrategy.NEVER },
+  { label: '自动', value: 'auto' },
+  { label: '谨慎', value: 'safe' },
+  { label: '从不', value: 'never' },
 ] as const;
 
 export const COVER_SAVE_STRATEGIES = [

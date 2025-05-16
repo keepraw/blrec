@@ -51,7 +51,7 @@ class RecordTask:
         cover_save_strategy: CoverSaveStrategy = CoverSaveStrategy.DEFAULT,
         remux_to_mp4: bool = False,
         inject_extra_metadata: bool = False,
-        delete_source: DeleteStrategy = DeleteStrategy.NONE,
+        delete_source: DeleteStrategy = DeleteStrategy.AUTO,
     ) -> None:
         self._live = live
         self._out_dir = out_dir

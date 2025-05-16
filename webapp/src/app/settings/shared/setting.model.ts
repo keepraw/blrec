@@ -145,4 +145,4 @@ export type QualityNumber = 10000 | 250 | 400 | 1000 | 2000 | 4000 | 8000;
 
 export type CoverSaveStrategy = 'default' | 'append' | 'overwrite';
 
-export type DeleteStrategy = 'none' | 'auto' | 'manual';
+export type DeleteStrategy = 'auto' | 'safe' | 'never';
