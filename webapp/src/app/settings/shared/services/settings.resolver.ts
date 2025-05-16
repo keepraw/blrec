@@ -21,7 +21,6 @@ type PrimarySettings = Pick<
   | 'logging'
   | 'biliApi'
   | 'header'
-  | 'danmaku'
   | 'recorder'
   | 'postprocessing'
   | 'space'
@@ -44,7 +43,6 @@ export class SettingsResolver implements Resolve<PrimarySettings> {
         'logging',
         'biliApi',
         'header',
-        'danmaku',
         'recorder',
         'postprocessing',
         'space',

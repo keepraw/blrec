@@ -15,6 +15,7 @@ __all__ = 'LiveStatus', 'RoomInfo', 'UserInfo'
 
 
 class LiveStatus(IntEnum):
+    UNKNOWN = -1
     PREPARING = 0
     LIVE = 1
     ROUND = 2
