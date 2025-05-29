@@ -25,8 +25,11 @@ import {
   TaskOptions,
   GlobalTaskSettings,
   TaskOptionsIn,
+  TaskSettings,
 } from '../../settings/shared/setting.model';
 import { TaskSettingsService } from '../shared/services/task-settings.service';
+import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 
 @Component({
   selector: 'app-task-item',
@@ -187,7 +190,6 @@ export class TaskItemComponent implements OnChanges, OnDestroy {
       this.settingService.getSettings([
         'output',
         'header',
-        'danmaku',
         'recorder',
         'postprocessing',
       ])
@@ -234,5 +236,23 @@ export class TaskItemComponent implements OnChanges, OnDestroy {
           }
         });
     }
+  }
+
+  private getTaskSettings(): Observable<TaskSettings> {
+    return this.settingService
+      .getSettings([
+        'output',
+        'header',
+        'recorder',
+        'postprocessing',
+      ])
+      .pipe(
+        map((settings) => ({
+          output: settings.output,
+          header: settings.header,
+          recorder: settings.recorder,
+          postprocessing: settings.postprocessing,
+        }))
+      );
   }
 }

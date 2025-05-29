@@ -38,7 +38,6 @@ import { BaseUrlValidatorDirective } from './shared/directives/base-url-validato
 import { DiskSpaceSettingsComponent } from './disk-space-settings/disk-space-settings.component';
 import { NotificationSettingsComponent } from './notification-settings/notification-settings.component';
 import { LoggingSettingsComponent } from './logging-settings/logging-settings.component';
-import { DanmakuSettingsComponent } from './danmaku-settings/danmaku-settings.component';
 import { PostProcessingSettingsComponent } from './post-processing-settings/post-processing-settings.component';
 import { RecorderSettingsComponent } from './recorder-settings/recorder-settings.component';
 import { HeaderSettingsComponent } from './header-settings/header-settings.component';
@@ -82,7 +81,6 @@ import { BarkNotificationSettingsResolver } from './shared/services/bark-notific
     DiskSpaceSettingsComponent,
     NotificationSettingsComponent,
     LoggingSettingsComponent,
-    DanmakuSettingsComponent,
     PostProcessingSettingsComponent,
     RecorderSettingsComponent,
     HeaderSettingsComponent,

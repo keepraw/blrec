@@ -19,14 +19,6 @@ from .models import (
     VideoFileCreatedEventData,
     VideoFileCompletedEvent,
     VideoFileCompletedEventData,
-    DanmakuFileCreatedEvent,
-    DanmakuFileCreatedEventData,
-    DanmakuFileCompletedEvent,
-    DanmakuFileCompletedEventData,
-    RawDanmakuFileCreatedEvent,
-    RawDanmakuFileCreatedEventData,
-    RawDanmakuFileCompletedEvent,
-    RawDanmakuFileCompletedEventData,
     CoverImageDownloadedEvent,
     CoverImageDownloadedEventData,
     VideoPostprocessingCompletedEvent,
@@ -97,24 +89,6 @@ class RecorderEventSubmitter(RecorderEventListener):
     async def on_video_file_completed(self, recorder: Recorder, path: str) -> None:
         data = VideoFileCompletedEventData(recorder.live.room_id, path)
         event_center.submit(VideoFileCompletedEvent.from_data(data))
-
-    async def on_danmaku_file_created(self, recorder: Recorder, path: str) -> None:
-        data = DanmakuFileCreatedEventData(recorder.live.room_id, path)
-        event_center.submit(DanmakuFileCreatedEvent.from_data(data))
-
-    async def on_danmaku_file_completed(self, recorder: Recorder, path: str) -> None:
-        data = DanmakuFileCompletedEventData(recorder.live.room_id, path)
-        event_center.submit(DanmakuFileCompletedEvent.from_data(data))
-
-    async def on_raw_danmaku_file_created(self, recorder: Recorder, path: str) -> None:
-        data = RawDanmakuFileCreatedEventData(recorder.live.room_id, path)
-        event_center.submit(RawDanmakuFileCreatedEvent.from_data(data))
-
-    async def on_raw_danmaku_file_completed(
-        self, recorder: Recorder, path: str
-    ) -> None:
-        data = RawDanmakuFileCompletedEventData(recorder.live.room_id, path)
-        event_center.submit(RawDanmakuFileCompletedEvent.from_data(data))
 
     async def on_cover_image_downloaded(self, recorder: Recorder, path: str) -> None:
         data = CoverImageDownloadedEventData(recorder.live.room_id, path)

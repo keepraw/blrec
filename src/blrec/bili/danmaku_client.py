@@ -100,15 +100,12 @@ class DanmakuClient(EventEmitter[DanmakuListener], AsyncStoppableMixin):
         self._buvid = extract_buvid_from_cookie(cookie) or ''
 
     async def _do_start(self) -> None:
-        await self._update_danmu_info()
-        await self._connect()
-        await self._create_message_loop()
-        self._logger.debug('Started danmaku client')
+        self._logger.debug('Started danmaku client (disabled)')
+        await self._emit('client_connected')
 
     async def _do_stop(self) -> None:
-        await self._terminate_message_loop()
-        await self._disconnect()
-        self._logger.debug('Stopped danmaku client')
+        self._logger.debug('Stopped danmaku client (disabled)')
+        await self._emit('client_disconnected')
 
     @async_task_with_logger_context
     async def restart(self) -> None:
@@ -133,22 +130,8 @@ class DanmakuClient(EventEmitter[DanmakuListener], AsyncStoppableMixin):
         ),
     )
     async def _connect(self) -> None:
-        self._logger.debug('Connecting to server...')
-        try:
-            await self._connect_websocket()
-            await self._send_auth()
-            reply = await self._recieve_auth_reply()
-            await self._handle_auth_reply(reply)
-        except Exception:
-            self._host_index += 1
-            if self._host_index >= len(self._danmu_info['host_list']):
-                self._host_index = 0
-                # self._rotate_api_platform()  # XXX: use web api only
-                await self._update_danmu_info()
-            raise
-        else:
-            self._logger.debug('Connected to server')
-            await self._emit('client_connected')
+        # 不执行任何操作
+        pass
 
     async def _connect_websocket(self) -> None:
         url = 'wss://{}:{}/sub'.format(
@@ -224,27 +207,12 @@ class DanmakuClient(EventEmitter[DanmakuListener], AsyncStoppableMixin):
             self._api_platform = 'android'
 
     async def _update_danmu_info(self) -> None:
-        self._logger.debug(f'Updating danmu info via {self._api_platform} api...')
-        api: Union[WebApi, AppApi]
-        # if self._api_platform == 'web':
-        #     api = self.webapi
-        # else:
-        #     api = self.appapi
-        api = self.webapi
-        try:
-            cookie = self.headers.get('Cookie', '')
-            self._danmu_info = await api.get_danmu_info(self._room_id, cookie=cookie)
-        except Exception as exc:
-            self._logger.warning(f'Failed to update danmu info: {repr(exc)}')
-            self._danmu_info = COMMON_DANMU_INFO
-        else:
-            self._logger.debug('Danmu info updated')
+        # 不执行任何操作
+        pass
 
     async def _disconnect(self) -> None:
-        await self._cancel_heartbeat_task()
-        await self._close_websocket()
-        self._logger.debug('Disconnected from server')
-        await self._emit('client_disconnected')
+        # 不执行任何操作
+        pass
 
     async def _close_websocket(self) -> None:
         with suppress(BaseException):
@@ -261,17 +229,8 @@ class DanmakuClient(EventEmitter[DanmakuListener], AsyncStoppableMixin):
 
     @async_task_with_logger_context
     async def _send_heartbeat(self) -> None:
-        data = Frame.encode(WS.OP_HEARTBEAT, '')
-        while True:
-            try:
-                await self._ws.send_bytes(data)
-            except Exception as exc:
-                self._logger.warning(f'Failed to send heartbeat: {repr(exc)}')
-                await self._emit('error_occurred', exc)
-                task = asyncio.create_task(self.restart())
-                task.add_done_callback(exception_callback)
-                break
-            await asyncio.sleep(self._HEARTBEAT_INTERVAL)
+        # 不执行任何操作
+        pass
 
     async def _create_message_loop(self) -> None:
         self._message_loop_task = asyncio.create_task(self._message_loop())
@@ -286,9 +245,8 @@ class DanmakuClient(EventEmitter[DanmakuListener], AsyncStoppableMixin):
 
     @async_task_with_logger_context
     async def _message_loop(self) -> None:
-        while True:
-            for msg in await self._receive():
-                await self._dispatch_message(msg)
+        # 不执行任何操作
+        pass
 
     async def _dispatch_message(self, msg: Dict[str, Any]) -> None:
         await self._emit('danmaku_received', msg)

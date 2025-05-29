@@ -75,22 +75,22 @@ export interface TaskOptions {
   output: OutputOptions;
   biliApi: BiliApiOptions;
   header: HeaderOptions;
-  danmaku: DanmakuOptions;
   recorder: RecorderOptions;
   postprocessing: PostprocessingOptions;
 }
 
 export type TaskOptionsIn = PartialDeep<TaskOptions>;
 
-export interface TaskSettings extends TaskOptions {
-  roomId: number;
-  enableMonitor: boolean;
-  enableRecorder: boolean;
+export interface TaskSettings {
+  output: OutputSettings;
+  header: HeaderSettings;
+  recorder: RecorderSettings;
+  postprocessing: PostprocessingSettings;
 }
 
 export type GlobalTaskSettings = Pick<
   Settings,
-  'output' | 'biliApi' | 'header' | 'danmaku' | 'recorder' | 'postprocessing'
+  'output' | 'biliApi' | 'header' | 'recorder' | 'postprocessing'
 >;
 
 export interface OutputSettings {
@@ -395,7 +395,6 @@ export interface Settings {
   logging: LoggingSettings;
   biliApi: BiliApiSettings;
   header: HeaderSettings;
-  danmaku: DanmakuSettings;
   recorder: RecorderSettings;
   postprocessing: PostprocessingSettings;
   space: SpaceSettings;

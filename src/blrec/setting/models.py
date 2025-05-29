@@ -300,7 +300,6 @@ class OutputSettings(OutputOptions):
 class TaskOptions(BaseModel):
     output: OutputOptions = OutputOptions()
     header: HeaderOptions = HeaderOptions()
-    danmaku: DanmakuOptions = DanmakuOptions()
     recorder: RecorderOptions = RecorderOptions()
     postprocessing: PostprocessingOptions = PostprocessingOptions()
 
@@ -308,7 +307,7 @@ class TaskOptions(BaseModel):
     def from_settings(cls, settings: TaskSettings) -> TaskOptions:
         return cls(
             **settings.dict(
-                include={'output', 'header', 'danmaku', 'recorder', 'postprocessing'}
+                include={'output', 'header', 'recorder', 'postprocessing'}
             )
         )
 
@@ -620,10 +619,6 @@ class WebHookEventSettings(BaseModel):
     recording_cancelled: bool = True
     video_file_created: bool = True
     video_file_completed: bool = True
-    danmaku_file_created: bool = True
-    danmaku_file_completed: bool = True
-    raw_danmaku_file_created: bool = True
-    raw_danmaku_file_completed: bool = True
     cover_image_downloaded: bool = True
     video_postprocessing_completed: bool = True
     postprocessing_completed: bool = True
@@ -647,7 +642,6 @@ class Settings(BaseModel):
     logging: LoggingSettings = LoggingSettings()  # type: ignore
     bili_api: BiliApiSettings = BiliApiSettings()
     header: HeaderSettings = HeaderSettings()
-    danmaku: DanmakuSettings = DanmakuSettings()
     recorder: RecorderSettings = RecorderSettings()
     postprocessing: PostprocessingSettings = PostprocessingSettings()
     space: SpaceSettings = SpaceSettings()
@@ -698,7 +692,6 @@ class SettingsIn(BaseModel):
     logging: Optional[LoggingSettings] = None
     bili_api: Optional[BiliApiSettings] = None
     header: Optional[HeaderSettings] = None
-    danmaku: Optional[DanmakuSettings] = None
     recorder: Optional[RecorderSettings] = None
     postprocessing: Optional[PostprocessingSettings] = None
     space: Optional[SpaceSettings] = None

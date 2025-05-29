@@ -1,6 +1,7 @@
 import asyncio
 import random
 from contextlib import suppress
+from typing import Optional
 
 from loguru import logger
 
@@ -45,94 +46,48 @@ class LiveMonitor(EventEmitter[LiveEventListener], DanmakuListener, SwitchableMi
         super().__init__()
         self._logger_context = {'room_id': live.room_id}
         self._logger = logger.bind(**self._logger_context)
+
         self._danmaku_client = danmaku_client
         self._live = live
-
-    def _init_status(self) -> None:
-        self._previous_status = self._live.room_info.live_status
-        if self._live.is_living():
-            self._status_count = 2
-            self._stream_available = True
-        else:
-            self._status_count = 0
-            self._stream_available = False
+        self._previous_status = LiveStatus.PREPARING
+        self._status_count = 0
+        self._stream_available = False
+        self._checking_task: Optional[asyncio.Task] = None
 
     def _do_enable(self) -> None:
-        self._init_status()
         self._danmaku_client.add_listener(self)
-        self._start_polling()
+        self._start_checking()
         self._logger.debug('Enabled live monitor')
 
     def _do_disable(self) -> None:
         self._danmaku_client.remove_listener(self)
-        asyncio.create_task(self._stop_polling())
-        asyncio.create_task(self._stop_checking())
+        self._stop_checking()
         self._logger.debug('Disabled live monitor')
 
-    def _start_polling(self) -> None:
-        self._polling_task = asyncio.create_task(self._poll_live_status())
-        self._polling_task.add_done_callback(exception_callback)
-
-    async def _stop_polling(self) -> None:
-        self._polling_task.cancel()
-        with suppress(asyncio.CancelledError):
-            await self._polling_task
-        del self._polling_task
-
     def _start_checking(self) -> None:
-        self._checking_task = asyncio.create_task(self._check_if_stream_available())
-        self._checking_task.add_done_callback(exception_callback)
-        asyncio.get_running_loop().call_later(
-            1800, lambda: asyncio.create_task(self._stop_checking())
-        )
+        if self._checking_task is None:
+            self._checking_task = asyncio.create_task(self._check_loop())
+            self._checking_task.add_done_callback(exception_callback)
 
-    async def _stop_checking(self) -> None:
-        if not hasattr(self, '_checking_task'):
-            return
-        self._checking_task.cancel()
-        with suppress(asyncio.CancelledError):
-            await self._checking_task
-        del self._checking_task
+    def _stop_checking(self) -> None:
+        if self._checking_task is not None:
+            self._checking_task.cancel()
+            self._checking_task = None
 
-    async def on_client_reconnected(self) -> None:
-        # check the live status after the client reconnected and simulate
-        # events if necessary.
-        # make sure the recorder works well continuously after interruptions
-        # such as an operating system hibernation.
-        self._logger.warning('The Danmaku Client Reconnected')
-
-        await self._live.update_room_info()
-        current_status = self._live.room_info.live_status
-
-        if current_status == self._previous_status:
-            if current_status == LiveStatus.LIVE:
-                self._logger.debug('Simulating stream reset event')
+    @async_task_with_logger_context
+    async def _check_loop(self) -> None:
+        while True:
+            try:
+                await self._live.update_room_info()
+                current_status = self._live.room_info.live_status
                 await self._handle_status_change(current_status)
-        else:
-            if current_status == LiveStatus.LIVE:
-                self._logger.debug('Simulating live began event')
-                await self._handle_status_change(current_status)
-                self._logger.debug('Simulating live stream available event')
-                await self._handle_status_change(current_status)
-            else:
-                self._logger.debug('Simulating live ended event')
-                await self._handle_status_change(current_status)
+            except Exception as e:
+                self._logger.error(f'Failed to check live status: {repr(e)}')
+            await asyncio.sleep(5)  # 每5秒检查一次
 
     async def on_danmaku_received(self, danmu: Danmaku) -> None:
-        danmu_cmd = danmu['cmd']
-
-        if danmu_cmd == DanmakuCommand.LIVE.value:
-            await self._live.update_room_info()
-            await self._handle_status_change(LiveStatus.LIVE)
-        elif danmu_cmd == DanmakuCommand.PREPARING.value:
-            await self._live.update_room_info()
-            if danmu.get('round', None) == 1:
-                await self._handle_status_change(LiveStatus.ROUND)
-            else:
-                await self._handle_status_change(LiveStatus.PREPARING)
-        elif danmu_cmd == DanmakuCommand.ROOM_CHANGE.value:
-            await self._live.update_room_info()
-            await self._emit('room_changed', self._live.room_info)
+        # 不再使用弹幕来监控直播状态
+        pass
 
     async def _handle_status_change(self, current_status: LiveStatus) -> None:
         self._logger.debug(

@@ -91,9 +91,6 @@ class RecordTaskManager:
             self._settings_manager.apply_task_output_settings(
                 settings.room_id, settings.output
             )
-            self._settings_manager.apply_task_danmaku_settings(
-                settings.room_id, settings.danmaku
-            )
             self._settings_manager.apply_task_recorder_settings(
                 settings.room_id, settings.recorder
             )
@@ -305,17 +302,6 @@ class RecordTaskManager:
         task.path_template = settings.path_template
         task.filesize_limit = settings.filesize_limit
         task.duration_limit = settings.duration_limit
-
-    def apply_task_danmaku_settings(
-        self, room_id: int, settings: DanmakuSettings
-    ) -> None:
-        task = self._get_task(room_id)
-        task.danmu_uname = settings.danmu_uname
-        task.record_gift_send = settings.record_gift_send
-        task.record_free_gifts = settings.record_free_gifts
-        task.record_guard_buy = settings.record_guard_buy
-        task.record_super_chat = settings.record_super_chat
-        task.save_raw_danmaku = settings.save_raw_danmaku
 
     def apply_task_recorder_settings(
         self, room_id: int, settings: RecorderSettings
