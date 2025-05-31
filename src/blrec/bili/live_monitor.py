@@ -50,17 +50,28 @@ class LiveMonitor(EventEmitter[LiveEventListener], SwitchableMixin):
         self._status_count = 0
         self._stream_available = False
         self._checking_task: Optional[asyncio.Task] = None
+        self._is_shutting_down = False
 
     def _do_enable(self) -> None:
-        self._start_checking()
-        self._logger.debug('Enabled live monitor')
+        if not self._is_shutting_down:
+            self._start_checking()
+            self._logger.debug('Enabled live monitor')
 
     def _do_disable(self) -> None:
         self._stop_checking()
         self._logger.debug('Disabled live monitor')
 
+    async def shutdown(self) -> None:
+        """安全关闭 LiveMonitor"""
+        self._is_shutting_down = True
+        self._do_disable()
+        if self._live is not None:
+            await self._live.deinit()
+            self._live = None
+        self._logger.debug('LiveMonitor shutdown complete')
+
     def _start_checking(self) -> None:
-        if self._checking_task is None:
+        if self._checking_task is None and not self._is_shutting_down:
             self._checking_task = asyncio.create_task(self._check_loop())
             self._checking_task.add_done_callback(exception_callback)
 
@@ -71,14 +82,30 @@ class LiveMonitor(EventEmitter[LiveEventListener], SwitchableMixin):
 
     @async_task_with_logger_context
     async def _check_loop(self) -> None:
-        while True:
+        while not self._is_shutting_down:
             try:
+                if self._live is None:
+                    self._logger.error('Live object is None, stopping check loop')
+                    break
+                    
                 await self._live.update_room_info()
+                if self._live.room_info is None:
+                    self._logger.error('Room info is None after update')
+                    await asyncio.sleep(5)
+                    continue
+                    
                 current_status = self._live.room_info.live_status
                 await self._handle_status_change(current_status)
+            except asyncio.CancelledError:
+                self._logger.debug('Check loop cancelled')
+                break
             except Exception as e:
                 self._logger.error(f'Failed to check live status: {repr(e)}')
-            await asyncio.sleep(5)  # 每5秒检查一次
+                if self._is_shutting_down:
+                    break
+                await asyncio.sleep(5)  # 发生错误时等待5秒再重试
+            else:
+                await asyncio.sleep(5)  # 正常情况下的检查间隔
 
     async def _handle_status_change(self, current_status: LiveStatus) -> None:
         self._logger.debug(
@@ -103,7 +130,7 @@ class LiveMonitor(EventEmitter[LiveEventListener], SwitchableMixin):
                 self._start_checking()
             elif self._status_count == 2:
                 assert self._previous_status == LiveStatus.LIVE
-            elif self._status_count > 2:
+            elif self._status_count >= 5:
                 assert self._previous_status == LiveStatus.LIVE
                 await self._emit('live_stream_reset', self._live)
             else:
