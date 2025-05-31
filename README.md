@@ -6,14 +6,9 @@
 
 ## 屏幕截图
 
-![webapp](https://user-images.githubusercontent.com/33854576/128959800-451d03e7-c9f9-4732-ac90-97fdb6b88972.png)
-
-![terminal](https://user-images.githubusercontent.com/33854576/128959819-70d72937-65da-4c15-b61c-d2da65bf42be.png)
-
 ## 功能
 
 - 自动完成直播录制
-- 同步保存弹幕
 - 自动修复时间戳问题：跳变、反跳等。
 - 直播流参数改变自动分割文件，避免出现花屏等问题。
 - 流中断自动拼接且支持 **无缝** 拼接，不会因网络中断而使录播文件片段化。
@@ -30,75 +25,6 @@
 
     Python 3.8+
     ffmpeg、 ffprobe
-
-## 安装
-
-- 通过 pip 或者 pipx 安装
-
-    `pip install blrec` 或者 `pipx install blrec`
-
-    使用的一些库需要自己编译，Windows 没安装 C / C++ 编译器会安装出错，
-    参考 [Python Can't install packages](https://stackoverflow.com/questions/64261546/python-cant-install-packages) 先安装好 [Microsoft C++ Build Tools](https://visualstudio.microsoft.com/visual-cpp-build-tools/)。
-
-- 免安装绿色版
-
-    支持 Windows 10+ 或 Windows Server 2016+，下载后解压运行 `run.bat` 或 `run.ps1` 。
-
-    不是官方或最新系统可能需要安装系统更新或缺少的 `C` 或 `C++` 运行时库
-
-    下载
-
-    - Releases: https://github.com/acgnhiki/blrec/releases
-    - 网盘: https://gooyie.lanzoui.com/b01om2zte  密码: 2233
-
-## 更新
-
-- 通过 pip 或者 pipx 安装的用以下方式更新
-
-    `pip install blrec --upgrade` 或者 `pipx upgrade blrec`
-
-- 免安装绿色版
-
-    - 下载并解压新版本
-    - 确保旧版本已经关闭退出以避免之后出现端口冲突
-    - 把旧版本的设置文件 `settings.toml` 复制并覆盖新版本的设置文件
-    - 运行新版本的 `run.bat`
-
-## 卸载
-
-- 通过 pip 或者 pipx 安装的用以下方式卸载
-
-    `pip uninstall blrec` 或者 `pipx uninstall blrec`
-
-- 免安装绿色版
-
-    删除解压后的文件夹
-
-
-## Docker
-
-### 环境变量
-
-- 默认设置文件位置: `ENV BLREC_DEFAULT_SETTINGS_FILE=/cfg/settings.toml`
-- 默认日志存放目录: `ENV BLREC_DEFAULT_LOG_DIR=/log`
-- 默认录播存放目录: `ENV BLREC_DEFAULT_OUT_DIR=/rec`
-- 默认时区: `ENV TZ="Asia/Shanghai"`
-
-### 默认参数运行
-
-`sudo docker run -v /etc/blrec:/cfg -v /var/log/blrec:/log -v ~/blrec:/rec -dp 2233:2233 acgnhiki/blrec`
-
-### 命令行参数用法
-
-```bash
-sudo docker run \
-    -v /etc/blrec:/cfg -v /var/log/blrec:/log -v ~/blrec:/rec \
-    -dp 2233:2233 acgnhiki/blrec \
-    -c /cfg/another_settings.toml \
-    --key-file path/to/key-file \
-    --cert-file path/to/cert-file \
-    --api-key bili2233
-```
 
 ## 使用方法
 
@@ -230,22 +156,3 @@ api key 可以使用数字和字母，长度限制为最短 8 最长 80。
     `deactivate`
 
 ---
-
-## 常见问题
-
-[FAQ](FAQ.md)
-
-## 更新日志
-
-[CHANGELOG](CHANGELOG.md)
-
----
-
-## 其它相关工具或项目
-
-| 名称 | 链接 | 简介 |
-| --- | --- | --- |
-| 录播姬 | [官网](https://rec.danmuji.org/) | 简单易用成熟稳定的 B 站直播录制工具 |
-| rclone | [官网](https://rclone.org/) | 可以挂载网盘用于存放录播文件 |
-| alist | [官网](https://alist-doc.nn.ci/) | 网盘文件浏览、播放 |
-| filebrowser | [官网](https://filebrowser.org/) | 服务器文件管理 |
