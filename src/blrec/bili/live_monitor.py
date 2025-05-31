@@ -108,13 +108,14 @@ class LiveMonitor(EventEmitter[LiveEventListener], SwitchableMixin):
                 await asyncio.sleep(5)  # 正常情况下的检查间隔
 
     async def _handle_status_change(self, current_status: LiveStatus) -> None:
-        self._logger.debug(
-            'Live status changed from {} to {}'.format(
-                self._previous_status.name, current_status.name
+        # 只在状态真正改变时才记录日志
+        if current_status != self._previous_status:
+            self._logger.debug(
+                'Live status changed from {} to {}'.format(
+                    self._previous_status.name, current_status.name
+                )
             )
-        )
-
-        await self._emit('live_status_changed', current_status, self._previous_status)
+            await self._emit('live_status_changed', current_status, self._previous_status)
 
         if current_status != LiveStatus.LIVE:
             if self._previous_status == LiveStatus.LIVE:
@@ -122,7 +123,6 @@ class LiveMonitor(EventEmitter[LiveEventListener], SwitchableMixin):
                 self._status_count = 0
                 self._stream_available = False
                 await self._emit('live_ended', self._live)
-            # 不要在这里停止检查，让检查继续运行以监控直播状态
         else:
             self._status_count += 1
 
@@ -137,9 +137,11 @@ class LiveMonitor(EventEmitter[LiveEventListener], SwitchableMixin):
             else:
                 pass
 
-        self._logger.debug(
-            'Number of sequential LIVE status: {}'.format(self._status_count)
-        )
+        # 只在状态是 LIVE 时才记录连续 LIVE 状态计数
+        if current_status == LiveStatus.LIVE:
+            self._logger.debug(
+                'Number of sequential LIVE status: {}'.format(self._status_count)
+            )
 
         self._previous_status = current_status
 
