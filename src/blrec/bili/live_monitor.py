@@ -117,17 +117,18 @@ class LiveMonitor(EventEmitter[LiveEventListener], SwitchableMixin):
         await self._emit('live_status_changed', current_status, self._previous_status)
 
         if current_status != LiveStatus.LIVE:
-            self._status_count = 0
-            self._stream_available = False
-            await self._emit('live_ended', self._live)
-            await self._stop_checking()
+            if self._previous_status == LiveStatus.LIVE:
+                # 只有在之前是直播状态，现在不是直播状态时，才触发直播结束事件
+                self._status_count = 0
+                self._stream_available = False
+                await self._emit('live_ended', self._live)
+            # 不要在这里停止检查，让检查继续运行以监控直播状态
         else:
             self._status_count += 1
 
             if self._status_count == 1:
                 assert self._previous_status != LiveStatus.LIVE
                 await self._emit('live_began', self._live)
-                self._start_checking()
             elif self._status_count == 2:
                 assert self._previous_status == LiveStatus.LIVE
             elif self._status_count >= 5:
