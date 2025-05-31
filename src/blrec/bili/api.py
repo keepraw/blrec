@@ -54,7 +54,9 @@ class BaseApi(ABC):
 
     @headers.setter
     def headers(self, value: Dict[str, str]) -> None:
-        self._headers = {**BASE_HEADERS, **value}
+        # 确保所有的键都是字符串
+        headers = {str(k): str(v) for k, v in value.items() if k is not None and v is not None}
+        self._headers = {**BASE_HEADERS, **headers}
 
     @staticmethod
     def _check_response(json_res: JsonResponse) -> None:
@@ -294,15 +296,19 @@ class WebApi(BaseApi):
         json_res = await self._get_json(self.base_api_urls, path, params=params)
         return json_res['data']
 
-    async def get_danmu_info(self, room_id: int, cookie: str) -> ResponseData:
-        path = '/xlive/web-room/v1/index/getDanmuInfo'
+    async def get_room_info(self, room_id: int) -> ResponseData:
+        path = '/xlive/web-room/v1/index/getInfoByRoom'
         params = {
-            'id': room_id,
-            "type": 0,
-            }
-        w_rid, wts = wbi_sign_params(params.copy(), cookie)
-        params["w_rid"] = w_rid
-        params["wts"] = wts
+            'room_id': room_id,
+        }
+        json_res = await self._get_json(self.base_live_api_urls, path, params=params)
+        return json_res['data']
+
+    async def get_room_info_by_uid(self, uid: int) -> ResponseData:
+        path = '/xlive/web-room/v1/index/getInfoByUser'
+        params = {
+            'uid': uid,
+        }
         json_res = await self._get_json(self.base_live_api_urls, path, params=params)
         return json_res['data']
 

@@ -33,8 +33,6 @@ class TaskStatus:
     rec_elapsed: float  # time elapsed
     rec_total: int  # Number of Bytes in total
     rec_rate: float  # Number of Bytes per second
-    danmu_total: int  # Number of Danmu in total
-    danmu_rate: float  # Number of Danmu per minutes
     real_stream_format: Optional[StreamFormat]
     real_quality_number: Optional[QualityNumber]
     recording_path: Optional[str] = None
@@ -57,13 +55,6 @@ class TaskParam:
     # HeaderSettings
     user_agent: str
     cookie: str
-    # DanmakuSettings
-    danmu_uname: bool
-    record_gift_send: bool
-    record_free_gifts: bool
-    record_guard_buy: bool
-    record_super_chat: bool
-    save_raw_danmaku: bool
     # RecorderSettings
     stream_format: StreamFormat
     recording_mode: RecordingMode
@@ -96,22 +87,8 @@ class VideoFileStatus(str, Enum):
     UNKNOWN = 'unknown'
 
 
-class DanmukuFileStatus(str, Enum):
-    RECORDING = 'recording'
-    COMPLETED = 'completed'
-    MISSING = 'missing'
-    UNKNOWN = 'unknown'
-
-
 @attr.s(auto_attribs=True, slots=True, frozen=True)
 class VideoFileDetail:
     path: str
     size: int
-    status: VideoFileStatus
-
-
-@attr.s(auto_attribs=True, slots=True, frozen=True)
-class DanmakuFileDetail:
-    path: str
-    size: int
-    status: DanmukuFileStatus
+    status: str

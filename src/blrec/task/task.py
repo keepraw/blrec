@@ -3,7 +3,6 @@ from contextlib import suppress
 from pathlib import PurePath
 from typing import Iterator, List, Optional
 
-from blrec.bili.danmaku_client import DanmakuClient
 from blrec.bili.live import Live
 from blrec.bili.live_monitor import LiveMonitor
 from blrec.bili.models import RoomInfo, UserInfo
@@ -20,16 +19,10 @@ from blrec.flv.metadata_injection import InjectingProgress
 from blrec.flv.operators import StreamProfile
 from blrec.postprocess import DeleteStrategy, Postprocessor, PostprocessorStatus
 from blrec.postprocess.remux import RemuxingProgress
+from blrec.setting.models import HeaderSettings
 from blrec.setting.typing import RecordingMode
 
-from .models import (
-    DanmakuFileDetail,
-    DanmukuFileStatus,
-    RunningStatus,
-    TaskStatus,
-    VideoFileDetail,
-    VideoFileStatus,
-)
+from .models import TaskData, TaskParam, VideoFileDetail, RunningStatus, TaskStatus, VideoFileStatus
 
 __all__ = ('RecordTask',)
 
@@ -110,8 +103,6 @@ class RecordTask:
             rec_elapsed=self._recorder.rec_elapsed,
             rec_total=self._recorder.rec_total,
             rec_rate=self._recorder.rec_rate,
-            danmu_total=self._recorder.danmu_total,
-            danmu_rate=self._recorder.danmu_rate,
             real_stream_format=self._recorder.real_stream_format,
             real_quality_number=self._recorder.real_quality_number,
             recording_path=self.recording_path,
@@ -163,37 +154,6 @@ class RecordTask:
             yield VideoFileDetail(path=path, size=size, status=status)
 
     @property
-    def danmaku_file_details(self) -> Iterator[DanmakuFileDetail]:
-        recording_paths = set(self._recorder.get_recording_files())
-        completed_paths = set(self._postprocessor.get_completed_files())
-
-        for path in self._recorder.get_danmaku_files():
-            try:
-                size = os.path.getsize(path)
-                exists = True
-            except FileNotFoundError:
-                _path = str(PurePath(path).parent.with_suffix('.xml'))
-                try:
-                    size = os.path.getsize(_path)
-                    exists = True
-                    path = _path
-                except FileNotFoundError:
-                    size = 0
-                    exists = False
-
-            if not exists:
-                status = DanmukuFileStatus.MISSING
-            elif path in completed_paths:
-                status = DanmukuFileStatus.COMPLETED
-            elif path in recording_paths:
-                status = DanmukuFileStatus.RECORDING
-            else:
-                # disabling recorder by force or stoping task by force
-                status = DanmukuFileStatus.UNKNOWN
-
-            yield DanmakuFileDetail(path=path, size=size, status=status)
-
-    @property
     def base_api_urls(self) -> List[str]:
         return self._live.base_api_urls
 
@@ -224,8 +184,6 @@ class RecordTask:
     @user_agent.setter
     def user_agent(self, value: str) -> None:
         self._live.user_agent = value
-        if hasattr(self, '_danmaku_client'):
-            self._danmaku_client.headers = self._live.headers
 
     @property
     def cookie(self) -> str:
@@ -234,48 +192,6 @@ class RecordTask:
     @cookie.setter
     def cookie(self, value: str) -> None:
         self._live.cookie = value
-        if hasattr(self, '_danmaku_client'):
-            self._danmaku_client.headers = self._live.headers
-
-    @property
-    def danmu_uname(self) -> bool:
-        return self._recorder.danmu_uname
-
-    @danmu_uname.setter
-    def danmu_uname(self, value: bool) -> None:
-        self._recorder.danmu_uname = value
-
-    @property
-    def record_gift_send(self) -> bool:
-        return self._recorder.record_gift_send
-
-    @record_gift_send.setter
-    def record_gift_send(self, value: bool) -> None:
-        self._recorder.record_gift_send = value
-
-    @property
-    def record_free_gifts(self) -> bool:
-        return self._recorder.record_free_gifts
-
-    @record_free_gifts.setter
-    def record_free_gifts(self, value: bool) -> None:
-        self._recorder.record_free_gifts = value
-
-    @property
-    def record_guard_buy(self) -> bool:
-        return self._recorder.record_guard_buy
-
-    @record_guard_buy.setter
-    def record_guard_buy(self, value: bool) -> None:
-        self._recorder.record_guard_buy = value
-
-    @property
-    def record_super_chat(self) -> bool:
-        return self._recorder.record_super_chat
-
-    @record_super_chat.setter
-    def record_super_chat(self, value: bool) -> None:
-        self._recorder.record_super_chat = value
 
     @property
     def save_cover(self) -> bool:
@@ -292,14 +208,6 @@ class RecordTask:
     @cover_save_strategy.setter
     def cover_save_strategy(self, value: CoverSaveStrategy) -> None:
         self._recorder.cover_save_strategy = value
-
-    @property
-    def save_raw_danmaku(self) -> bool:
-        return self._recorder.save_raw_danmaku
-
-    @save_raw_danmaku.setter
-    def save_raw_danmaku(self, value: bool) -> None:
-        self._recorder.save_raw_danmaku = value
 
     @property
     def stream_format(self) -> StreamFormat:
@@ -427,11 +335,15 @@ class RecordTask:
 
     @property
     def delete_source(self) -> DeleteStrategy:
-        return self._postprocessor.delete_source
+        return self._delete_source
 
     @delete_source.setter
     def delete_source(self, value: DeleteStrategy) -> None:
-        self._postprocessor.delete_source = value
+        self._delete_source = value
+
+    async def apply_header_settings(self, settings: HeaderSettings) -> None:
+        self.user_agent = settings.user_agent
+        self.cookie = settings.cookie
 
     def can_cut_stream(self) -> bool:
         return self._recorder.can_cut_stream()
@@ -454,7 +366,6 @@ class RecordTask:
             return
         self._monitor_enabled = True
 
-        await self._danmaku_client.start()
         self._live_monitor.enable()
 
     async def disable_monitor(self) -> None:
@@ -463,7 +374,6 @@ class RecordTask:
         self._monitor_enabled = False
 
         self._live_monitor.disable()
-        await self._danmaku_client.stop()
 
     async def enable_recorder(self) -> None:
         if self._recorder_enabled:
@@ -488,11 +398,7 @@ class RecordTask:
     async def update_info(self, raise_exception: bool = False) -> bool:
         return await self._live.update_info(raise_exception=raise_exception)
 
-    async def restart_danmaku_client(self) -> None:
-        await self._danmaku_client.restart()
-
     async def _setup(self) -> None:
-        self._setup_danmaku_client()
         self._setup_live_monitor()
         self._setup_live_event_submitter()
         self._setup_recorder()
@@ -500,17 +406,8 @@ class RecordTask:
         self._setup_postprocessor()
         self._setup_postprocessor_event_submitter()
 
-    def _setup_danmaku_client(self) -> None:
-        self._danmaku_client = DanmakuClient(
-            self._live.session,
-            self._live.appapi,
-            self._live.webapi,
-            self._live.room_id,
-            headers=self._live.headers,
-        )
-
     def _setup_live_monitor(self) -> None:
-        self._live_monitor = LiveMonitor(self._danmaku_client, self._live)
+        self._live_monitor = LiveMonitor(self._live)
 
     def _setup_live_event_submitter(self) -> None:
         self._live_event_submitter = LiveEventSubmitter(self._live_monitor)
@@ -518,7 +415,6 @@ class RecordTask:
     def _setup_recorder(self) -> None:
         self._recorder = Recorder(
             self._live,
-            self._danmaku_client,
             self._live_monitor,
             self._out_dir,
             self._path_template,
@@ -548,11 +444,6 @@ class RecordTask:
         self._destroy_recorder()
         self._destroy_live_event_submitter()
         self._destroy_live_monitor()
-        self._destroy_danmaku_client()
-
-    def _destroy_danmaku_client(self) -> None:
-        with suppress(AttributeError):
-            del self._danmaku_client
 
     def _destroy_live_monitor(self) -> None:
         with suppress(AttributeError):

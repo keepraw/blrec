@@ -5,7 +5,6 @@ from .models import (
     TaskParam,
     RunningStatus,
     VideoFileDetail,
-    DanmakuFileDetail,
 )
 
 
@@ -17,5 +16,4 @@ __all__ = (
     'TaskParam',
     'RunningStatus',
     'VideoFileDetail',
-    'DanmakuFileDetail',
 )

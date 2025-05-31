@@ -18,11 +18,8 @@
 
     <nz-statistic
       [nzTitle]="'录制总计'"
-      [nzValueTemplate]="recordedTotal"
+      [nzValue]="(taskStatus.rec_total | filesize)!"
     ></nz-statistic>
-    <ng-template #recordedTotal>{{
-      taskStatus.rec_total | filesize: { spacer: " " }
-    }}</ng-template>
 
     <nz-statistic
       [nzTitle]="'录制画质'"
@@ -37,11 +34,6 @@
           ")"
         : ""
     }}</ng-template>
-
-    <nz-statistic
-      [nzTitle]="'弹幕总计'"
-      [nzValue]="(taskStatus.danmu_total | number: '1.0-2')!"
-    ></nz-statistic>
   </div>
   <div
     class="rec-rate-chart"

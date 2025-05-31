@@ -9,14 +9,11 @@ export type Event =
   | RecordingCancelledEvent
   | VideoFileCreatedEvent
   | VideoFileCompletedEvent
-  | DanmakuFileCreatedEvent
-  | DanmakuFileCompletedEvent
-  | RawDanmakuFileCreatedEvent
-  | RawDanmakuFileCompletedEvent
   | CoverImageDownloadedEvent
-  | SpaceNoEnoughEvent
   | VideoPostprocessingCompletedEvent
-  | PostprocessingCompletedEvent;
+  | PostprocessingCompletedEvent
+  | SpaceNoEnoughEvent
+  | ErrorOccurredEvent;
 
 export interface LiveBeganEvent {
   readonly type: 'LiveBeganEvent';
@@ -73,35 +70,6 @@ export interface VideoFileCompletedEvent {
     path: string;
   };
 }
-export interface DanmakuFileCreatedEvent {
-  readonly type: 'DanmakuFileCreatedEvent';
-  readonly data: {
-    room_id: number;
-    path: string;
-  };
-}
-export interface DanmakuFileCompletedEvent {
-  readonly type: 'DanmakuFileCompletedEvent';
-  readonly data: {
-    room_id: number;
-    path: string;
-  };
-}
-export interface RawDanmakuFileCreatedEvent {
-  readonly type: 'RawDanmakuFileCreatedEvent';
-  readonly data: {
-    room_id: number;
-    path: string;
-  };
-}
-export interface RawDanmakuFileCompletedEvent {
-  readonly type: 'RawDanmakuFileCompletedEvent';
-  readonly data: {
-    room_id: number;
-    path: string;
-  };
-}
-
 export interface CoverImageDownloadedEvent {
   readonly type: 'CoverImageDownloadedEvent';
   readonly data: {
@@ -139,4 +107,11 @@ export interface DiskUsage {
   total: number;
   used: number;
   free: number;
+}
+
+export interface ErrorOccurredEvent {
+  readonly type: 'ErrorOccurredEvent';
+  readonly data: {
+    message: string;
+  };
 }

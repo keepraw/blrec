@@ -17,7 +17,6 @@ from ..notification import (
 from ..webhook import WebHook
 from .helpers import shadow_settings, update_settings
 from .models import (
-    DanmakuOptions,
     HeaderOptions,
     MessageTemplateSettings,
     NotificationSettings,
@@ -215,21 +214,12 @@ class SettingsManager:
         self,
         room_id: int,
         options: HeaderOptions,
-        *,
-        restart_danmaku_client: bool = True,
     ) -> None:
         final_settings = self._settings.header.copy()
         shadow_settings(options, final_settings)
         await self._app._task_manager.apply_task_header_settings(
-            room_id, final_settings, restart_danmaku_client=restart_danmaku_client
+            room_id, final_settings
         )
-
-    def apply_task_danmaku_settings(
-        self, room_id: int, options: DanmakuOptions
-    ) -> None:
-        final_settings = self._settings.danmaku.copy()
-        shadow_settings(options, final_settings)
-        self._app._task_manager.apply_task_danmaku_settings(room_id, final_settings)
 
     def apply_task_recorder_settings(
         self, room_id: int, options: RecorderOptions
@@ -277,10 +267,6 @@ class SettingsManager:
     async def apply_header_settings(self) -> None:
         for settings in self._settings.tasks:
             await self.apply_task_header_settings(settings.room_id, settings.header)
-
-    def apply_danmaku_settings(self) -> None:
-        for settings in self._settings.tasks:
-            self.apply_task_danmaku_settings(settings.room_id, settings.danmaku)
 
     def apply_recorder_settings(self) -> None:
         for settings in self._settings.tasks:

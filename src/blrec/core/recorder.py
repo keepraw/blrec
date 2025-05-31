@@ -7,7 +7,6 @@ from typing import Iterator, Optional
 import humanize
 from loguru import logger
 
-from blrec.bili.danmaku_client import DanmakuClient
 from blrec.bili.live import Live
 from blrec.bili.live_monitor import LiveEventListener, LiveMonitor
 from blrec.bili.models import RoomInfo
@@ -23,10 +22,6 @@ from .cover_downloader import (
     CoverDownloaderEventListener,
     CoverSaveStrategy,
 )
-from .danmaku_dumper import DanmakuDumper, DanmakuDumperEventListener
-from .danmaku_receiver import DanmakuReceiver
-from .raw_danmaku_dumper import RawDanmakuDumper, RawDanmakuDumperEventListener
-from .raw_danmaku_receiver import RawDanmakuReceiver
 from .stream_recorder import StreamRecorder, StreamRecorderEventListener
 
 __all__ = 'RecorderEventListener', 'Recorder'
@@ -48,20 +43,6 @@ class RecorderEventListener(EventListener):
     async def on_video_file_completed(self, recorder: Recorder, path: str) -> None:
         ...
 
-    async def on_danmaku_file_created(self, recorder: Recorder, path: str) -> None:
-        ...
-
-    async def on_danmaku_file_completed(self, recorder: Recorder, path: str) -> None:
-        ...
-
-    async def on_raw_danmaku_file_created(self, recorder: Recorder, path: str) -> None:
-        ...
-
-    async def on_raw_danmaku_file_completed(
-        self, recorder: Recorder, path: str
-    ) -> None:
-        ...
-
     async def on_cover_image_downloaded(self, recorder: Recorder, path: str) -> None:
         ...
 
@@ -70,15 +51,12 @@ class Recorder(
     EventEmitter[RecorderEventListener],
     LiveEventListener,
     AsyncStoppableMixin,
-    DanmakuDumperEventListener,
-    RawDanmakuDumperEventListener,
     CoverDownloaderEventListener,
     StreamRecorderEventListener,
 ):
     def __init__(
         self,
         live: Live,
-        danmaku_client: DanmakuClient,
         live_monitor: LiveMonitor,
         out_dir: str,
         path_template: str,
@@ -92,23 +70,15 @@ class Recorder(
         disconnection_timeout: Optional[int] = None,
         filesize_limit: int = 0,
         duration_limit: int = 0,
-        danmu_uname: bool = False,
-        record_gift_send: bool = False,
-        record_free_gifts: bool = False,
-        record_guard_buy: bool = False,
-        record_super_chat: bool = False,
         save_cover: bool = False,
         cover_save_strategy: CoverSaveStrategy = CoverSaveStrategy.DEFAULT,
-        save_raw_danmaku: bool = False,
     ) -> None:
         super().__init__()
         self._logger_context = {'room_id': live.room_id}
         self._logger = logger.bind(**self._logger_context)
 
         self._live = live
-        self._danmaku_client = danmaku_client
         self._live_monitor = live_monitor
-        self.save_raw_danmaku = save_raw_danmaku
 
         self._recording: bool = False
         self._stream_available: bool = False
@@ -127,22 +97,6 @@ class Recorder(
             disconnection_timeout=disconnection_timeout,
             filesize_limit=filesize_limit,
             duration_limit=duration_limit,
-        )
-
-        self._danmaku_receiver = DanmakuReceiver(live, danmaku_client)
-        self._danmaku_dumper = DanmakuDumper(
-            live,
-            self._stream_recorder,
-            self._danmaku_receiver,
-            danmu_uname=danmu_uname,
-            record_gift_send=record_gift_send,
-            record_free_gifts=record_free_gifts,
-            record_guard_buy=record_guard_buy,
-            record_super_chat=record_super_chat,
-        )
-        self._raw_danmaku_receiver = RawDanmakuReceiver(live, danmaku_client)
-        self._raw_danmaku_dumper = RawDanmakuDumper(
-            live, self._stream_recorder, self._raw_danmaku_receiver
         )
 
         self._cover_downloader = CoverDownloader(
@@ -225,62 +179,6 @@ class Recorder(
         self._stream_recorder.disconnection_timeout = value
 
     @property
-    def danmu_uname(self) -> bool:
-        return self._danmaku_dumper.danmu_uname
-
-    @danmu_uname.setter
-    def danmu_uname(self, value: bool) -> None:
-        self._danmaku_dumper.danmu_uname = value
-
-    @property
-    def record_gift_send(self) -> bool:
-        return self._danmaku_dumper.record_gift_send
-
-    @record_gift_send.setter
-    def record_gift_send(self, value: bool) -> None:
-        self._danmaku_dumper.record_gift_send = value
-
-    @property
-    def record_free_gifts(self) -> bool:
-        return self._danmaku_dumper.record_free_gifts
-
-    @record_free_gifts.setter
-    def record_free_gifts(self, value: bool) -> None:
-        self._danmaku_dumper.record_free_gifts = value
-
-    @property
-    def record_guard_buy(self) -> bool:
-        return self._danmaku_dumper.record_guard_buy
-
-    @record_guard_buy.setter
-    def record_guard_buy(self, value: bool) -> None:
-        self._danmaku_dumper.record_guard_buy = value
-
-    @property
-    def record_super_chat(self) -> bool:
-        return self._danmaku_dumper.record_super_chat
-
-    @record_super_chat.setter
-    def record_super_chat(self, value: bool) -> None:
-        self._danmaku_dumper.record_super_chat = value
-
-    @property
-    def save_cover(self) -> bool:
-        return self._cover_downloader.save_cover
-
-    @save_cover.setter
-    def save_cover(self, value: bool) -> None:
-        self._cover_downloader.save_cover = value
-
-    @property
-    def cover_save_strategy(self) -> CoverSaveStrategy:
-        return self._cover_downloader.cover_save_strategy
-
-    @cover_save_strategy.setter
-    def cover_save_strategy(self, value: CoverSaveStrategy) -> None:
-        self._cover_downloader.cover_save_strategy = value
-
-    @property
     def stream_url(self) -> str:
         return self._stream_recorder.stream_url
 
@@ -307,14 +205,6 @@ class Recorder(
     @property
     def rec_rate(self) -> float:
         return self._stream_recorder.rec_rate
-
-    @property
-    def danmu_total(self) -> int:
-        return self._danmaku_dumper.danmu_total
-
-    @property
-    def danmu_rate(self) -> float:
-        return self._danmaku_dumper.danmu_rate
 
     @property
     def out_dir(self) -> str:
@@ -363,14 +253,9 @@ class Recorder(
     def get_recording_files(self) -> Iterator[str]:
         if self._stream_recorder.recording_path is not None:
             yield self._stream_recorder.recording_path
-        if self._danmaku_dumper.dumping_path is not None:
-            yield self._danmaku_dumper.dumping_path
 
     def get_video_files(self) -> Iterator[str]:
         yield from self._stream_recorder.get_files()
-
-    def get_danmaku_files(self) -> Iterator[str]:
-        yield from self._danmaku_dumper.get_files()
 
     def can_cut_stream(self) -> bool:
         return self._stream_recorder.can_cut_stream()
@@ -412,18 +297,6 @@ class Recorder(
     async def on_video_file_completed(self, path: str) -> None:
         await self._emit('video_file_completed', self, path)
 
-    async def on_danmaku_file_created(self, path: str) -> None:
-        await self._emit('danmaku_file_created', self, path)
-
-    async def on_danmaku_file_completed(self, path: str) -> None:
-        await self._emit('danmaku_file_completed', self, path)
-
-    async def on_raw_danmaku_file_created(self, path: str) -> None:
-        await self._emit('raw_danmaku_file_created', self, path)
-
-    async def on_raw_danmaku_file_completed(self, path: str) -> None:
-        await self._emit('raw_danmaku_file_completed', self, path)
-
     async def on_cover_image_downloaded(self, path: str) -> None:
         await self._emit('cover_image_downloaded', self, path)
 
@@ -433,8 +306,6 @@ class Recorder(
 
     async def _do_start(self) -> None:
         self._live_monitor.add_listener(self)
-        self._danmaku_dumper.add_listener(self)
-        self._raw_danmaku_dumper.add_listener(self)
         self._cover_downloader.add_listener(self)
         self._logger.debug('Started recorder')
 
@@ -448,8 +319,6 @@ class Recorder(
     async def _do_stop(self) -> None:
         await self._stop_recording()
         self._live_monitor.remove_listener(self)
-        self._danmaku_dumper.remove_listener(self)
-        self._raw_danmaku_dumper.remove_listener(self)
         self._cover_downloader.remove_listener(self)
         self._logger.debug('Stopped recorder')
 
@@ -458,11 +327,6 @@ class Recorder(
             return
         self._recording = True
 
-        if self.save_raw_danmaku:
-            self._raw_danmaku_dumper.enable()
-            self._raw_danmaku_receiver.start()
-        self._danmaku_dumper.enable()
-        self._danmaku_receiver.start()
         self._cover_downloader.enable()
         self._stream_recorder.add_listener(self)
 
@@ -479,11 +343,6 @@ class Recorder(
         self._recording = False
 
         await self._stream_recorder.stop()
-        if self.save_raw_danmaku:
-            self._raw_danmaku_dumper.disable()
-            self._raw_danmaku_receiver.stop()
-        self._danmaku_dumper.disable()
-        self._danmaku_receiver.stop()
         self._cover_downloader.disable()
         self._stream_recorder.remove_listener(self)
 
@@ -496,8 +355,6 @@ class Recorder(
 
     async def _prepare(self) -> None:
         live_start_time = self._live.room_info.live_start_time
-        self._danmaku_dumper.set_live_start_time(live_start_time)
-        self._danmaku_dumper.clear_files()
         self._stream_recorder.clear_files()
 
     def _print_waiting_message(self) -> None:

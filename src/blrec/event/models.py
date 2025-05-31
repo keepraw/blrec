@@ -138,54 +138,6 @@ class VideoFileCompletedEvent(BaseEvent[VideoFileCompletedEventData]):
 
 
 @attr.s(auto_attribs=True, slots=True, frozen=True)
-class DanmakuFileCreatedEventData(BaseEventData):
-    room_id: int
-    path: str
-
-
-@attr.s(auto_attribs=True, slots=True, frozen=True, kw_only=True)
-class DanmakuFileCreatedEvent(BaseEvent[DanmakuFileCreatedEventData]):
-    type: str = 'DanmakuFileCreatedEvent'
-    data: DanmakuFileCreatedEventData
-
-
-@attr.s(auto_attribs=True, slots=True, frozen=True)
-class DanmakuFileCompletedEventData(BaseEventData):
-    room_id: int
-    path: str
-
-
-@attr.s(auto_attribs=True, slots=True, frozen=True, kw_only=True)
-class DanmakuFileCompletedEvent(BaseEvent[DanmakuFileCompletedEventData]):
-    type: str = 'DanmakuFileCompletedEvent'
-    data: DanmakuFileCompletedEventData
-
-
-@attr.s(auto_attribs=True, slots=True, frozen=True)
-class RawDanmakuFileCreatedEventData(BaseEventData):
-    room_id: int
-    path: str
-
-
-@attr.s(auto_attribs=True, slots=True, frozen=True, kw_only=True)
-class RawDanmakuFileCreatedEvent(BaseEvent[RawDanmakuFileCreatedEventData]):
-    type: str = 'RawDanmakuFileCreatedEvent'
-    data: RawDanmakuFileCreatedEventData
-
-
-@attr.s(auto_attribs=True, slots=True, frozen=True)
-class RawDanmakuFileCompletedEventData(BaseEventData):
-    room_id: int
-    path: str
-
-
-@attr.s(auto_attribs=True, slots=True, frozen=True, kw_only=True)
-class RawDanmakuFileCompletedEvent(BaseEvent[RawDanmakuFileCompletedEventData]):
-    type: str = 'RawDanmakuFileCompletedEvent'
-    data: RawDanmakuFileCompletedEventData
-
-
-@attr.s(auto_attribs=True, slots=True, frozen=True)
 class CoverImageDownloadedEventData(BaseEventData):
     room_id: int
     path: str

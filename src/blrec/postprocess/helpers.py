@@ -9,9 +9,7 @@ from loguru import logger
 
 from blrec.path.helpers import (
     cover_path,
-    danmaku_path,
     playlist_path,
-    raw_danmaku_path,
     record_metadata_path,
 )
 
@@ -44,8 +42,6 @@ async def discard_dir(path: str, log_level: Literal['INFO', 'DEBUG'] = 'INFO') -
 
 def files_related(video_path: str) -> Iterable[str]:
     file_paths = [
-        danmaku_path(video_path),
-        raw_danmaku_path(video_path),
         cover_path(video_path, ext='jpg'),
         cover_path(video_path, ext='png'),
     ]

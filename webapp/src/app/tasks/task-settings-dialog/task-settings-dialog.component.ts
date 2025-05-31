@@ -53,8 +53,7 @@ export class TaskSettingsDialogComponent implements OnChanges {
   @ViewChild(NgForm)
   ngForm?: NgForm;
 
-  readonly warningTip =
-    '需要重启弹幕客户端才能生效，如果任务正在录制可能会丢失弹幕！';
+  readonly warningTip = '需要重启才能生效！';
   readonly pathTemplatePattern = PATH_TEMPLATE_PATTERN;
   readonly streamFormatOptions = cloneDeep(STREAM_FORMAT_OPTIONS) as Mutable<
     typeof STREAM_FORMAT_OPTIONS

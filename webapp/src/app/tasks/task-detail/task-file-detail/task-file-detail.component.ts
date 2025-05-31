@@ -13,12 +13,11 @@ import {
 } from 'ng-zorro-antd/table';
 
 import {
-  DanmakuFileDetail,
   VideoFileDetail,
   VideoFileStatus,
 } from '../../shared/task.model';
 
-type FileDetail = VideoFileDetail | DanmakuFileDetail;
+type FileDetail = VideoFileDetail;
 interface ColumnItem {
   name: string;
   sortFn: NzTableSortFn<FileDetail> | null;
@@ -46,7 +45,6 @@ const OrderedStatuses = [
 export class TaskFileDetailComponent implements OnChanges {
   @Input() loading: boolean = true;
   @Input() videoFileDetails: VideoFileDetail[] = [];
-  @Input() danmakuFileDetails: DanmakuFileDetail[] = [];
 
   readonly VideoFileStatus = VideoFileStatus;
 
@@ -61,14 +59,11 @@ export class TaskFileDetailComponent implements OnChanges {
       filterMultiple: false,
       listOfFilter: [
         { text: '视频', value: 'video' },
-        { text: '弹幕', value: 'danmaku' },
       ],
       filterFn: (value: string, item: FileDetail) => {
         switch (value) {
           case 'video':
             return item.path.endsWith('.flv') || item.path.endsWith('.mp4');
-          case 'danmaku':
-            return item.path.endsWith('.xml');
           default:
             return false;
         }
@@ -110,7 +105,7 @@ export class TaskFileDetailComponent implements OnChanges {
   constructor() {}
 
   ngOnChanges() {
-    this.fileDetails = [...this.videoFileDetails, ...this.danmakuFileDetails];
+    this.fileDetails = [...this.videoFileDetails];
   }
 
   trackByPath(index: number, data: FileDetail): string {

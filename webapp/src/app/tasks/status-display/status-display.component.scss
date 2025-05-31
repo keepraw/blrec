@@ -47,10 +47,6 @@
     @include text.elide-text-overflow;
   }
 
-  .danmu-count {
-    @include text.elide-text-overflow;
-  }
-
   .quality {
     flex: none;
     margin-left: auto;

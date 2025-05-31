@@ -14,7 +14,6 @@ import {
   StreamProfile,
   AddTaskResult,
   VideoFileDetail,
-  DanmakuFileDetail,
 } from '../task.model';
 
 @Injectable({
@@ -38,11 +37,6 @@ export class TaskService {
   getVideoFileDetails(roomId: number): Observable<VideoFileDetail[]> {
     const url = this.url.makeApiUrl(`/api/v1/tasks/${roomId}/videos`);
     return this.http.get<VideoFileDetail[]>(url);
-  }
-
-  getDanmakuFileDetails(roomId: number): Observable<DanmakuFileDetail[]> {
-    const url = this.url.makeApiUrl(`/api/v1/tasks/${roomId}/danmakus`);
-    return this.http.get<DanmakuFileDetail[]>(url);
   }
 
   getTaskParam(roomId: number): Observable<TaskParam> {

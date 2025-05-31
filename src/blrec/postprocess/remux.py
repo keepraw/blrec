@@ -1,6 +1,7 @@
 import os
 import re
 import shlex
+import shutil
 from subprocess import PIPE, Popen
 from typing import Any, Final, List, Optional, Union
 
@@ -53,6 +54,11 @@ class RemuxingResult:
 
     def may_timestamps_incorrect(self) -> bool:
         return 'Non-monotonous DTS in output stream' in self.output
+
+
+def check_ffmpeg() -> bool:
+    """检查系统中是否安装了 ffmpeg"""
+    return shutil.which('ffmpeg') is not None
 
 
 def remux_video(
@@ -112,6 +118,14 @@ def remux_video(
 
         def action(scheduler: abc.SchedulerBase, state: Optional[Any] = None) -> None:
             if disposed:
+                return
+
+            if not check_ffmpeg():
+                observer.on_error(
+                    FileNotFoundError(
+                        "FFmpeg not found. Please install FFmpeg and make sure it's in your system PATH."
+                    )
+                )
                 return
 
             with tqdm(

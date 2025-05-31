@@ -16,7 +16,6 @@ import { retry } from 'src/app/shared/rx-operators';
 import { TaskService } from '../shared/services/task.service';
 import {
   TaskData,
-  DanmakuFileDetail,
   VideoFileDetail,
 } from '../shared/task.model';
 
@@ -30,7 +29,6 @@ export class TaskDetailComponent implements OnInit, OnDestroy {
   roomId!: number;
   taskData!: TaskData;
   videoFileDetails: VideoFileDetail[] = [];
-  danmakuFileDetails: DanmakuFileDetail[] = [];
 
   loading: boolean = true;
   private dataSubscription?: Subscription;
@@ -69,8 +67,7 @@ export class TaskDetailComponent implements OnInit, OnDestroy {
         switchMap(() =>
           zip(
             this.taskService.getTaskData(this.roomId),
-            this.taskService.getVideoFileDetails(this.roomId),
-            this.taskService.getDanmakuFileDetails(this.roomId)
+            this.taskService.getVideoFileDetails(this.roomId)
           )
         ),
         catchError((error: HttpErrorResponse) => {
@@ -80,11 +77,10 @@ export class TaskDetailComponent implements OnInit, OnDestroy {
         retry(10, 3000)
       )
       .subscribe(
-        ([taskData, videoFileDetails, danmakuFileDetails]) => {
+        ([taskData, videoFileDetails]) => {
           this.loading = false;
           this.taskData = taskData;
           this.videoFileDetails = videoFileDetails;
-          this.danmakuFileDetails = danmakuFileDetails;
           this.changeDetector.markForCheck();
         },
         (error: HttpErrorResponse) => {

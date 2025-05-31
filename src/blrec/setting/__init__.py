@@ -2,8 +2,6 @@ from .helpers import shadow_settings, update_settings
 from .models import (
     DEFAULT_SETTINGS_FILE,
     BiliApiSettings,
-    DanmakuOptions,
-    DanmakuSettings,
     EmailMessageTemplateSettings,
     EmailNotificationSettings,
     EmailSettings,
@@ -52,8 +50,6 @@ __all__ = (
     'BiliApiSettings',
     'HeaderOptions',
     'HeaderSettings',
-    'DanmakuOptions',
-    'DanmakuSettings',
     'RecorderOptions',
     'RecorderSettings',
     'PostprocessingSettings',

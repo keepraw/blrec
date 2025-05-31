@@ -8,10 +8,6 @@ class ApiRequestError(Exception):
     message: str
 
 
-class DanmakuClientAuthError(aiohttp.ClientError):
-    pass
-
-
 class LiveRoomHidden(Exception):
     pass
 

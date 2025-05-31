@@ -70,11 +70,6 @@ async def get_task_video_file_details(room_id: int) -> List[Dict[str, Any]]:
     return [attr.asdict(d) for d in app.get_task_video_file_details(room_id)]
 
 
-@router.get('/{room_id}/danmakus', responses={**not_found_responses})
-async def get_task_danmaku_file_details(room_id: int) -> List[Dict[str, Any]]:
-    return [attr.asdict(d) for d in app.get_task_danmaku_file_details(room_id)]
-
-
 @router.post('/info', response_model=ResponseMessage, responses={**not_found_responses})
 async def update_all_task_infos() -> ResponseMessage:
     await app.update_all_task_infos()
