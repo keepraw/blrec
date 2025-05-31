@@ -115,9 +115,6 @@ class Postprocessor(
     async def on_video_file_completed(self, recorder: Recorder, path: str) -> None:
         self._queue.put_nowait(path)
 
-    async def on_danmaku_file_completed(self, recorder: Recorder, path: str) -> None:
-        self._completed_files.append(path)
-
     async def _do_start(self) -> None:
         self._recorder.add_listener(self)
 

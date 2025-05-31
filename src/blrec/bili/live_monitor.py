@@ -10,11 +10,9 @@ from blrec.logging.context import async_task_with_logger_context
 
 from ..event.event_emitter import EventEmitter, EventListener
 from ..utils.mixins import SwitchableMixin
-from .danmaku_client import DanmakuClient, DanmakuCommand, DanmakuListener
 from .helpers import extract_formats
 from .live import Live
 from .models import LiveStatus, RoomInfo
-from .typing import Danmaku
 
 __all__ = 'LiveMonitor', 'LiveEventListener'
 
@@ -41,13 +39,12 @@ class LiveEventListener(EventListener):
         ...
 
 
-class LiveMonitor(EventEmitter[LiveEventListener], DanmakuListener, SwitchableMixin):
-    def __init__(self, danmaku_client: DanmakuClient, live: Live) -> None:
+class LiveMonitor(EventEmitter[LiveEventListener], SwitchableMixin):
+    def __init__(self, live: Live) -> None:
         super().__init__()
         self._logger_context = {'room_id': live.room_id}
         self._logger = logger.bind(**self._logger_context)
 
-        self._danmaku_client = danmaku_client
         self._live = live
         self._previous_status = LiveStatus.PREPARING
         self._status_count = 0
@@ -55,12 +52,10 @@ class LiveMonitor(EventEmitter[LiveEventListener], DanmakuListener, SwitchableMi
         self._checking_task: Optional[asyncio.Task] = None
 
     def _do_enable(self) -> None:
-        self._danmaku_client.add_listener(self)
         self._start_checking()
         self._logger.debug('Enabled live monitor')
 
     def _do_disable(self) -> None:
-        self._danmaku_client.remove_listener(self)
         self._stop_checking()
         self._logger.debug('Disabled live monitor')
 
@@ -84,10 +79,6 @@ class LiveMonitor(EventEmitter[LiveEventListener], DanmakuListener, SwitchableMi
             except Exception as e:
                 self._logger.error(f'Failed to check live status: {repr(e)}')
             await asyncio.sleep(5)  # 每5秒检查一次
-
-    async def on_danmaku_received(self, danmu: Danmaku) -> None:
-        # 不再使用弹幕来监控直播状态
-        pass
 
     async def _handle_status_change(self, current_status: LiveStatus) -> None:
         self._logger.debug(

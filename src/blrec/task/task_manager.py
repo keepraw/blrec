@@ -12,7 +12,7 @@ from ..bili.exceptions import ApiRequestError
 from ..core.typing import MetaData
 from ..exception import NotFoundError, submit_exception
 from ..flv.operators import StreamProfile
-from .models import DanmakuFileDetail, TaskData, TaskParam, VideoFileDetail
+from .models import TaskData, TaskParam, VideoFileDetail
 from .task import RecordTask
 
 if TYPE_CHECKING:
@@ -22,7 +22,6 @@ from loguru import logger
 
 from ..setting import (
     BiliApiSettings,
-    DanmakuSettings,
     HeaderSettings,
     OutputSettings,
     PostprocessingSettings,
@@ -84,7 +83,7 @@ class RecordTaskManager:
             assert bili_api is not None
             self.apply_task_bili_api_settings(settings.room_id, bili_api)
             await self._settings_manager.apply_task_header_settings(
-                settings.room_id, settings.header, restart_danmaku_client=False
+                settings.room_id, settings.header
             )
             await task.setup()
 
@@ -240,12 +239,6 @@ class RecordTaskManager:
         task = self._get_task(room_id, check_ready=True)
         yield from task.video_file_details
 
-    def get_task_danmaku_file_details(
-        self, room_id: int
-    ) -> Iterator[DanmakuFileDetail]:
-        task = self._get_task(room_id, check_ready=True)
-        yield from task.danmaku_file_details
-
     def can_cut_stream(self, room_id: int) -> bool:
         task = self._get_task(room_id, check_ready=True)
         return task.can_cut_stream()
@@ -281,7 +274,6 @@ class RecordTaskManager:
         room_id: int,
         settings: HeaderSettings,
         *,
-        restart_danmaku_client: bool = True,
     ) -> None:
         task = self._get_task(room_id)
         changed = False
@@ -291,8 +283,6 @@ class RecordTaskManager:
         if task.cookie != settings.cookie:
             task.cookie = settings.cookie
             changed = True
-        if changed and restart_danmaku_client:
-            await task.restart_danmaku_client()
 
     def apply_task_output_settings(
         self, room_id: int, settings: OutputSettings
@@ -353,7 +343,6 @@ class RecordTaskManager:
             record_super_chat=task.record_super_chat,
             save_cover=task.save_cover,
             cover_save_strategy=task.cover_save_strategy,
-            save_raw_danmaku=task.save_raw_danmaku,
             stream_format=task.stream_format,
             recording_mode=task.recording_mode,
             quality_number=task.quality_number,

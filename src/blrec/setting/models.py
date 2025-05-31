@@ -36,8 +36,6 @@ __all__ = (
     'BiliApiSettings',
     'HeaderOptions',
     'HeaderSettings',
-    'DanmakuOptions',
-    'DanmakuSettings',
     'RecorderOptions',
     'RecorderSettings',
     'PostprocessingSettings',
@@ -136,24 +134,6 @@ class HeaderSettings(HeaderOptions):
         'Chrome/89.0.4389.114 Safari/537.36'
     )
     cookie: str = ''
-
-
-class DanmakuOptions(BaseModel):
-    danmu_uname: Optional[bool]
-    record_gift_send: Optional[bool]
-    record_free_gifts: Optional[bool]
-    record_guard_buy: Optional[bool]
-    record_super_chat: Optional[bool]
-    save_raw_danmaku: Optional[bool]
-
-
-class DanmakuSettings(DanmakuOptions):
-    danmu_uname: bool = False
-    record_gift_send: bool = True
-    record_free_gifts: bool = True
-    record_guard_buy: bool = True
-    record_super_chat: bool = True
-    save_raw_danmaku: bool = False
 
 
 class RecorderOptions(BaseModel):

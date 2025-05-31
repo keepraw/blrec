@@ -1,4 +1,4 @@
-from typing import AbstractSet, Literal, Union
+from typing import AbstractSet, Literal, Union, Set
 
 RecordingMode = Literal['standard', 'raw']
 
@@ -22,7 +22,6 @@ KeyOfSettings = Literal[
     'logging',
     'bili_api',
     'header',
-    'danmaku',
     'recorder',
     'postprocessing',
     'space',
@@ -35,4 +34,4 @@ KeyOfSettings = Literal[
     'webhooks',
 ]
 
-KeySetOfSettings = AbstractSet[KeyOfSettings]
+KeySetOfSettings = Set[str]
