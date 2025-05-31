@@ -8,7 +8,6 @@ class Statistics:
     def __init__(self, interval: float = 1.0) -> None:
         self._interval = interval
         self._frozen = True
-
         self._count: int = 0
         self._rate: float = 0.0
         self._start_time: float = 0.0

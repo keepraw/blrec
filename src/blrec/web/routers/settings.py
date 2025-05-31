@@ -39,10 +39,13 @@ async def get_settings(
     response_model_exclude_unset=True,
 )
 async def change_settings(settings: SettingsIn) -> SettingsOut:
-    """Change settings of the application
+    """
+    Change settings of the application
 
-    Change network request headers will cause
-    **all** the Danmaku client be **reconnected**!
+    Change the output directory will cause the application be **restarted**!
+
+    @param settings settings to change
+    @returns settings of the application
     """
     return await app.change_settings(settings)
 
@@ -65,12 +68,14 @@ async def get_task_options(room_id: int) -> TaskOptions:
 async def change_task_options(
     room_id: int, options: TaskOptions
 ) -> TaskOptions:
-    """Change task-specific options
+    """
+    Change task-specific options
 
     Task-specific options will shadow the corresponding global settings.
     Explicitly set options to **null** will remove the value shadowing.
 
-    Change network request headers will cause
-    the Danmaku client be **reconnected**!
+    @param roomId the real room id of the task
+    @param options options to change
+    @returns changed options
     """
     return await app.change_task_options(room_id, options)

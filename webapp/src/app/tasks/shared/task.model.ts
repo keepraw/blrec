@@ -90,8 +90,6 @@ export interface TaskStatus {
   readonly rec_elapsed: number;
   readonly rec_total: number;
   readonly rec_rate: number;
-  readonly danmu_total: number;
-  readonly danmu_rate: number;
   readonly real_stream_format: StreamFormat | null;
   readonly real_quality_number: QualityNumber | null;
   readonly recording_path: string | null;
@@ -108,13 +106,6 @@ export interface TaskParam {
 
   readonly user_agent: string;
   readonly cookie: string;
-
-  readonly danmu_uname: boolean;
-  readonly record_gift_send: boolean;
-  readonly record_free_gifts: boolean;
-  readonly record_guard_buy: boolean;
-  readonly record_super_chat: boolean;
-  readonly save_raw_danmaku: boolean;
 
   readonly stream_format: StreamFormat;
   readonly recording_mode: RecordingMode;
@@ -299,23 +290,10 @@ export enum VideoFileStatus {
   UNKNOWN = 'unknown',
 }
 
-export enum DanmakuFileStatus {
-  RECORDING = 'recording',
-  COMPLETED = 'completed',
-  MISSING = 'missing',
-  UNKNOWN = 'unknown',
-}
-
 export interface VideoFileDetail {
   readonly path: string;
   readonly size: number;
   readonly status: VideoFileStatus;
-}
-
-export interface DanmakuFileDetail {
-  readonly path: string;
-  readonly size: number;
-  readonly status: DanmakuFileStatus;
 }
 
 export interface AddTaskResult extends ResponseMessage {

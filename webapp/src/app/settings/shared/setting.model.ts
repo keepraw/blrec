@@ -15,17 +15,6 @@ export interface HeaderSettings {
 
 export type HeaderOptions = Nullable<HeaderSettings>;
 
-export interface DanmakuSettings {
-  danmuUname: boolean;
-  recordGiftSend: boolean;
-  recordFreeGifts: boolean;
-  recordGuardBuy: boolean;
-  recordSuperChat: boolean;
-  saveRawDanmaku: boolean;
-}
-
-export type DanmakuOptions = Nullable<DanmakuSettings>;
-
 export type StreamFormat = 'flv' | 'ts' | 'fmp4';
 export type RecordingMode = 'standard' | 'raw';
 
@@ -319,6 +308,7 @@ export interface TelegramMessageTemplateSettings {
   errorMessageTitle: string;
   errorMessageContent: string;
 }
+
 export interface BarkMessageTemplateSettings {
   beganMessageType: BarkMessageType;
   beganMessageTitle: string;
@@ -373,10 +363,6 @@ export interface WebhookEventSettings {
   recordingCancelled: boolean;
   videoFileCreated: boolean;
   videoFileCompleted: boolean;
-  danmakuFileCreated: boolean;
-  danmakuFileCompleted: boolean;
-  rawDanmakuFileCreated: boolean;
-  rawDanmakuFileCompleted: boolean;
   coverImageDownloaded: boolean;
   videoPostprocessingCompleted: boolean;
   postprocessingCompleted: boolean;

@@ -18,11 +18,6 @@ const routes: Routes = [
       scrollBehavior: RouteScrollBehaviour.KEEP_POSITION,
     },
   },
-  {
-    path: 'about',
-    loadChildren: () =>
-      import('./about/about.module').then((m) => m.AboutModule),
-  },
   { path: '', pathMatch: 'full', redirectTo: '/tasks' },
   { path: '**', component: PageNotFoundComponent },
 ];

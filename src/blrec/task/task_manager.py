@@ -82,10 +82,10 @@ class RecordTaskManager:
             bili_api = self._settings_manager.get_settings({'bili_api'}).bili_api
             assert bili_api is not None
             self.apply_task_bili_api_settings(settings.room_id, bili_api)
-            await self._settings_manager.apply_task_header_settings(
+            await task.setup()
+            await self.apply_task_header_settings(
                 settings.room_id, settings.header
             )
-            await task.setup()
 
             self._settings_manager.apply_task_output_settings(
                 settings.room_id, settings.output
@@ -273,16 +273,11 @@ class RecordTaskManager:
         self,
         room_id: int,
         settings: HeaderSettings,
-        *,
     ) -> None:
-        task = self._get_task(room_id)
-        changed = False
-        if task.user_agent != settings.user_agent:
-            task.user_agent = settings.user_agent
-            changed = True
-        if task.cookie != settings.cookie:
-            task.cookie = settings.cookie
-            changed = True
+        logger.debug(f'Applying header settings for task {room_id}...')
+        task = self._get_task(room_id, check_ready=True)
+        await task.apply_header_settings(settings)
+        logger.debug(f'Applied header settings for task {room_id}')
 
     def apply_task_output_settings(
         self, room_id: int, settings: OutputSettings
@@ -336,11 +331,6 @@ class RecordTaskManager:
             base_play_info_api_urls=task.base_play_info_api_urls,
             user_agent=task.user_agent,
             cookie=task.cookie,
-            danmu_uname=task.danmu_uname,
-            record_gift_send=task.record_gift_send,
-            record_free_gifts=task.record_free_gifts,
-            record_guard_buy=task.record_guard_buy,
-            record_super_chat=task.record_super_chat,
             save_cover=task.save_cover,
             cover_save_strategy=task.cover_save_strategy,
             stream_format=task.stream_format,

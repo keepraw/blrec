@@ -19,9 +19,10 @@ from blrec.flv.metadata_injection import InjectingProgress
 from blrec.flv.operators import StreamProfile
 from blrec.postprocess import DeleteStrategy, Postprocessor, PostprocessorStatus
 from blrec.postprocess.remux import RemuxingProgress
+from blrec.setting.models import HeaderSettings
 from blrec.setting.typing import RecordingMode
 
-from .models import TaskData, TaskParam, VideoFileDetail
+from .models import TaskData, TaskParam, VideoFileDetail, RunningStatus, TaskStatus, VideoFileStatus
 
 __all__ = ('RecordTask',)
 
@@ -102,8 +103,6 @@ class RecordTask:
             rec_elapsed=self._recorder.rec_elapsed,
             rec_total=self._recorder.rec_total,
             rec_rate=self._recorder.rec_rate,
-            danmu_total=self._recorder.danmu_total,
-            danmu_rate=self._recorder.danmu_rate,
             real_stream_format=self._recorder.real_stream_format,
             real_quality_number=self._recorder.real_quality_number,
             recording_path=self.recording_path,
@@ -336,11 +335,15 @@ class RecordTask:
 
     @property
     def delete_source(self) -> DeleteStrategy:
-        return self._postprocessor.delete_source
+        return self._delete_source
 
     @delete_source.setter
     def delete_source(self, value: DeleteStrategy) -> None:
-        self._postprocessor.delete_source = value
+        self._delete_source = value
+
+    async def apply_header_settings(self, settings: HeaderSettings) -> None:
+        self.user_agent = settings.user_agent
+        self.cookie = settings.cookie
 
     def can_cut_stream(self) -> bool:
         return self._recorder.can_cut_stream()

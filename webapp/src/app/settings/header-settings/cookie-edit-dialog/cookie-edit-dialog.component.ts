@@ -27,8 +27,7 @@ export class CookieEditDialogComponent implements OnChanges {
   @Output() confirm = new EventEmitter<string>();
 
   readonly settingsForm: FormGroup;
-  readonly warningTip =
-    '全部任务都需重启弹幕客户端才能生效，正在录制的任务可能会丢失弹幕！';
+  readonly warningTip = '全部任务都需重启才能生效！';
 
   constructor(
     formBuilder: FormBuilder,

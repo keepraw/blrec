@@ -11,6 +11,7 @@ __all__ = (
     'ffmpeg_metadata_path',
     'record_metadata_path',
     'file_exists',
+    'raw_video_path',
 )
 
 
@@ -30,6 +31,10 @@ def playlist_path(video_path: str) -> str:
 
 def video_path(playlist_path: str) -> str:
     return str(PurePath(playlist_path).with_suffix('.m4s'))
+
+
+def raw_video_path(video_path: str) -> str:
+    return str(PurePath(video_path).with_suffix('.flv'))
 
 
 def cover_path(video_path: str, ext: str = 'jpg') -> str:
