@@ -283,7 +283,14 @@ class Recorder(
         await self._stream_recorder.start()
 
     async def on_live_stream_reset(self, live: Live) -> None:
-        self._logger.warning('The live stream has been reset')
+        if not hasattr(self, '_reset_count'):
+            self._reset_count = 0
+        self._reset_count += 1
+        
+        # 每10次重置才显示一次警告
+        if self._reset_count % 10 == 0:
+            self._logger.debug(f'The live stream has been reset (count: {self._reset_count})')
+        
         if not self._recording:
             await self._start_recording()
 
