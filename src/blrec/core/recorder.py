@@ -3,13 +3,14 @@ from __future__ import annotations
 import asyncio
 from datetime import datetime
 from typing import Iterator, Optional
+import time
 
 import humanize
 from loguru import logger
 
 from blrec.bili.live import Live
 from blrec.bili.live_monitor import LiveEventListener, LiveMonitor
-from blrec.bili.models import RoomInfo
+from blrec.bili.models import RoomInfo, LiveStatus
 from blrec.bili.typing import QualityNumber, StreamFormat
 from blrec.core.typing import MetaData
 from blrec.event.event_emitter import EventEmitter, EventListener
@@ -263,10 +264,59 @@ class Recorder(
     def cut_stream(self) -> bool:
         return self._stream_recorder.cut_stream()
 
+    async def _wait_for_stream(self, live: Live) -> bool:
+        max_retries = 5
+        retry_interval = 2  # 秒
+        
+        # 先进行快速重试
+        for i in range(max_retries):
+            try:
+                streams = await live.get_live_streams()
+                if streams:
+                    self._stream_available = True
+                    self._stream_recorder.stream_available_time = await live.get_timestamp()
+                    return True
+            except Exception as e:
+                self._logger.warning(f'Failed to get live streams (attempt {i+1}/{max_retries}): {repr(e)}')
+            
+            if i < max_retries - 1:
+                await asyncio.sleep(retry_interval)
+        
+        # 如果快速重试失败，进入持续监控模式
+        self._logger.warning('Entering continuous monitoring mode for stream availability')
+        while True:
+            # 检查主播是否还在直播
+            try:
+                room_info = await live.get_room_info()
+                if room_info.live_status != LiveStatus.LIVE:
+                    self._logger.info('Live ended while waiting for stream')
+                    return False
+            except Exception as e:
+                self._logger.warning(f'Failed to check live status: {repr(e)}')
+                await asyncio.sleep(10)
+                continue
+            
+            # 检查流是否可用
+            try:
+                streams = await live.get_live_streams()
+                if streams:
+                    self._stream_available = True
+                    self._stream_recorder.stream_available_time = await live.get_timestamp()
+                    self._logger.info('Stream became available after continuous monitoring')
+                    return True
+            except Exception as e:
+                self._logger.debug(f'Stream still not available: {repr(e)}')
+            
+            await asyncio.sleep(10)  # 每10秒检查一次
+
     async def on_live_began(self, live: Live) -> None:
         self._logger.info('The live has began')
         self._print_live_info()
-        await self._start_recording()
+        
+        if await self._wait_for_stream(live):
+            await self._start_recording()
+        else:
+            self._logger.warning('Will retry when stream becomes available')
 
     async def on_live_ended(self, live: Live) -> None:
         self._logger.info('The live has ended')
@@ -291,8 +341,12 @@ class Recorder(
         if self._reset_count % 10 == 0:
             self._logger.debug(f'The live stream has been reset (count: {self._reset_count})')
         
-        if not self._recording:
-            await self._start_recording()
+        # 重置后重新检查流可用性
+        if await self._wait_for_stream(live):
+            if not self._recording:
+                await self._start_recording()
+        else:
+            self._logger.warning('Stream not available after reset')
 
     async def on_room_changed(self, room_info: RoomInfo) -> None:
         self._print_changed_room_info(room_info)
